@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "CosmosDb__ConnectionString": "AccountEndpoint=https://localhost:8081/;AccountKey=REPLACE_ME",
+    "CosmosDb__DatabaseName": "ratethings",
+    "Jwt__SigningKey": "replace-with-a-long-random-development-only-secret",
+    "Jwt__Issuer": "ratethings-api",
+    "Jwt__Audience": "ratethings-client"
+  }
+}
