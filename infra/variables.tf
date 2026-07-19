@@ -4,9 +4,9 @@ variable "environment" {
 }
 
 variable "location" {
-  description = "Azure region for all resources."
+  description = "Azure region for all resources. Must be a region that supports Microsoft.Web/staticSites (currently centralus, eastus2, westus2, westeurope, eastasia)."
   type        = string
-  default     = "eastus"
+  default     = "eastus2"
 }
 
 variable "project_name" {
