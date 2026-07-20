@@ -6,6 +6,11 @@ variable "location" {
   type = string
 }
 
+variable "compute_location" {
+  description = "Region for the App Service Plan and Function App specifically. May differ from `location` (used for storage/monitoring/everything else) when compute quota for the Y1 plan isn't available in the primary region."
+  type        = string
+}
+
 variable "resource_group_name" {
   type = string
 }

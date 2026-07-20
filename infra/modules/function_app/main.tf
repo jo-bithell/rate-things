@@ -35,7 +35,7 @@ resource "azurerm_application_insights" "this" {
 
 resource "azurerm_service_plan" "this" {
   name                = "${var.name_prefix}-plan"
-  location            = var.location
+  location            = var.compute_location
   resource_group_name = var.resource_group_name
   os_type             = "Linux"
   sku_name            = "Y1" # Consumption plan
@@ -44,7 +44,7 @@ resource "azurerm_service_plan" "this" {
 
 resource "azurerm_linux_function_app" "this" {
   name                = "${var.name_prefix}-func"
-  location            = var.location
+  location            = var.compute_location
   resource_group_name = var.resource_group_name
   service_plan_id     = azurerm_service_plan.this.id
 

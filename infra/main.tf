@@ -5,6 +5,7 @@ locals {
     environment = var.environment
     managed_by  = "terraform"
   }
+  function_app_compute_location = var.function_app_compute_location != "" ? var.function_app_compute_location : var.location
 }
 
 module "resource_group" {
@@ -36,6 +37,7 @@ module "function_app" {
   source                              = "./modules/function_app"
   name_prefix                         = local.name_prefix
   location                            = var.location
+  compute_location                    = local.function_app_compute_location
   resource_group_name                 = module.resource_group.name
   tags                                = local.tags
   cosmos_connection_string_secret_uri = module.key_vault.cosmos_connection_string_secret_uri

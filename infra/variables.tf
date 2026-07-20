@@ -9,6 +9,12 @@ variable "location" {
   default     = "eastus2"
 }
 
+variable "function_app_compute_location" {
+  description = "Azure region for the App Service Plan and Function App specifically. Leave blank to use `location`. Override when the Y1 (Consumption) plan quota isn't available in the primary region — check with `az quota show --resource-name Y1 --scope /subscriptions/<id>/providers/Microsoft.Web/locations/<region>`."
+  type        = string
+  default     = ""
+}
+
 variable "project_name" {
   description = "Short project name used as a naming prefix."
   type        = string
