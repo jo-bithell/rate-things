@@ -2,10 +2,10 @@ name: Deploy RateThings
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
     types: [opened, synchronize, reopened, closed]
-    branches: [main]
+    branches: [master]
 
 jobs:
   build_and_deploy:
@@ -14,26 +14,36 @@ jobs:
     name: Build and deploy
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Build API
-        run: dotnet build backend/RateThings.Api/RateThings.Api.csproj --configuration Release
+      - name: Publish API
+        run: dotnet publish backend/RateThings.Api/RateThings.Api.csproj --configuration Release --output ./api-publish
 
-      - name: Deploy to Azure Static Web Apps
+      # The Function App is a "bring your own backend" linked to the Static Web
+      # App via Terraform (azurerm_static_web_app_function_app_registration), so
+      # it's deployed directly here rather than through the SWA action's own
+      # api_location/managed-Functions path, which is a different, incompatible
+      # deployment model.
+      - name: Deploy API to Function App
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ratethings-dev-func
+          package: ./api-publish
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+
+      - name: Deploy frontend to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: 'upload'
           app_location: 'frontend'
-          api_location: 'backend/RateThings.Api'
           output_location: 'dist'
+          skip_api_build: true
 
   close_pull_request:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
