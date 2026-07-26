@@ -24,6 +24,15 @@ jobs:
       - name: Publish API
         run: dotnet publish backend/RateThings.Api/RateThings.Api.csproj --configuration Release --output ./api-publish
 
+      # RBAC login instead of a publish-profile: Azure now redacts publish
+      # credentials (userPWD/publishingPassword) from CLI output, so they
+      # can't be retrieved to store as a secret. A service principal with
+      # Contributor on the resource group sidesteps that entirely.
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       # The Function App is a "bring your own backend" linked to the Static Web
       # App via Terraform (azurerm_static_web_app_function_app_registration), so
       # it's deployed directly here rather than through the SWA action's own
@@ -34,7 +43,6 @@ jobs:
         with:
           app-name: ratethings-dev-func
           package: ./api-publish
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
       - name: Deploy frontend to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
