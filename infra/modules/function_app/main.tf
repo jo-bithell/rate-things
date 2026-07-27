@@ -38,7 +38,7 @@ resource "azurerm_service_plan" "this" {
   location            = var.compute_location
   resource_group_name = var.resource_group_name
   os_type             = "Linux"
-  sku_name            = "Y1" # Consumption plan
+  sku_name            = "B1" # Y1 (Consumption) quota is broken on this subscription; see infra/README or project memory.
   tags                = var.tags
 }
 

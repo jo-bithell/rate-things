@@ -12,13 +12,12 @@ terraform {
     }
   }
 
-  # Configure a remote backend before running `terraform init` in a real environment, e.g.:
-  # backend "azurerm" {
-  #   resource_group_name  = "ratethings-tfstate-rg"
-  #   storage_account_name = "ratethingstfstate"
-  #   container_name       = "tfstate"
-  #   key                  = "ratethings.tfstate"
-  # }
+  # storage_account_name and key are supplied via `terraform init -backend-config=...`
+  # so the same config can target a different state file per environment.
+  backend "azurerm" {
+    resource_group_name = "ratethings-tfstate-rg"
+    container_name      = "tfstate"
+  }
 }
 
 provider "azurerm" {
