@@ -103,8 +103,6 @@ export const api = {
 
   getListsByTopic: (topicId: string) => request<ListSummary[]>(`/topics/${topicId}/lists`),
 
-  getMyLists: () => request<ListSummary[]>('/lists/mine'),
-
   getList: (id: string) => request<ListSummary>(`/lists/${id}`),
 
   createList: (topicId: string, name: string, description?: string) =>
