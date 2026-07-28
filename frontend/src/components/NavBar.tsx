@@ -26,7 +26,14 @@ export default function NavBar() {
           <nav className="hidden sm:flex items-center gap-2">
             <NavLink to="/topics" className={linkClass}>Topics</NavLink>
             <NavLink to="/account" className={linkClass}>Account</NavLink>
-            <span className="text-sm text-stone-500 px-2">Hey, {user.displayName}!</span>
+            <span className="flex items-center gap-2 text-sm text-stone-500 px-2">
+              {user.imageUrl ? (
+                <img src={user.imageUrl} alt="" className="w-6 h-6 rounded-full border-2 border-stone-900 object-cover" />
+              ) : (
+                <span className="w-6 h-6 rounded-full border-2 border-stone-900 bg-amber-200 flex items-center justify-center text-xs">🙂</span>
+              )}
+              Hey, {user.displayName}!
+            </span>
             <button onClick={logout} className="px-3 py-2 rounded-full text-sm font-semibold text-stone-600 hover:bg-amber-100 border-2 border-transparent hover:border-stone-900 transition-colors">
               Log out
             </button>

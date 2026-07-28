@@ -102,10 +102,15 @@ export default function TopicsPage() {
         <ul className="space-y-3">
           {topics.map((t) => (
             <li key={t.id}>
-              <Link to={`/topics/${t.id}`} className="card-link">
-                <div className="font-bold">{t.name}</div>
-                {t.description && <div className="text-sm text-stone-500">{t.description}</div>}
-                <div className="text-xs text-stone-400 mt-1">Started by {t.createdByName}</div>
+              <Link to={`/topics/${t.id}`} className="card-link flex items-center gap-3">
+                {t.imageUrl && (
+                  <img src={t.imageUrl} alt="" className="w-12 h-12 rounded-xl border-2 border-stone-900 object-cover shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <div className="font-bold truncate">{t.name}</div>
+                  {t.description && <div className="text-sm text-stone-500">{t.description}</div>}
+                  <div className="text-xs text-stone-400 mt-1">Started by {t.createdByName}</div>
+                </div>
               </Link>
             </li>
           ))}

@@ -10,6 +10,8 @@ interface AuthContextValue {
   updateProfile: (email: string, displayName: string) => Promise<void>
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   deleteAccount: (password: string) => Promise<void>
+  uploadProfileImage: (file: File) => Promise<void>
+  removeProfileImage: () => Promise<void>
   logout: () => void
 }
 
@@ -60,6 +62,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout()
   }
 
+  const updateStoredUser = (user: User) => {
+    localStorage.setItem(USER_KEY, JSON.stringify(user))
+    setUser(user)
+  }
+
+  const uploadProfileImage = async (file: File) => {
+    updateStoredUser(await api.uploadProfileImage(file))
+  }
+
+  const removeProfileImage = async () => {
+    updateStoredUser(await api.deleteProfileImage())
+  }
+
   const logout = () => {
     setToken(null)
     localStorage.removeItem(USER_KEY)
@@ -68,7 +83,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, updateProfile, changePassword, deleteAccount, logout }}
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        updateProfile,
+        changePassword,
+        deleteAccount,
+        uploadProfileImage,
+        removeProfileImage,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>

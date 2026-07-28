@@ -13,12 +13,14 @@ public class UserFunctions
     private readonly IUserRepository _users;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtService _jwtService;
+    private readonly IImageStorageService _images;
 
-    public UserFunctions(IUserRepository users, IPasswordHasher passwordHasher, IJwtService jwtService)
+    public UserFunctions(IUserRepository users, IPasswordHasher passwordHasher, IJwtService jwtService, IImageStorageService images)
     {
         _users = users;
         _passwordHasher = passwordHasher;
         _jwtService = jwtService;
+        _images = images;
     }
 
     [Function("GetMe")]
@@ -37,7 +39,7 @@ public class UserFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName));
+        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl));
     }
 
     [Function("UpdateProfile")]
@@ -76,7 +78,7 @@ public class UserFunctions
         // fresh token - otherwise their existing token keeps presenting stale values
         // to every other endpoint until it expires.
         var token = _jwtService.GenerateToken(user);
-        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName)));
+        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl)));
     }
 
     [Function("ChangePassword")]
@@ -144,7 +146,64 @@ public class UserFunctions
             return HttpResponseExtensions.UnauthorizedProblem("Password is incorrect.");
         }
 
+        await _images.DeleteAsync(user.ImageUrl);
         await _users.DeleteAsync(userId);
         return new NoContentResult();
+    }
+
+    [Function("UploadProfileImage")]
+    public async Task<IActionResult> UploadProfileImage(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "users/me/image")] HttpRequest req)
+    {
+        var userId = req.HttpContext.User.GetUserId();
+        if (userId is null)
+        {
+            return HttpResponseExtensions.UnauthorizedProblem();
+        }
+
+        var user = await _users.GetByIdAsync(userId);
+        if (user is null)
+        {
+            return HttpResponseExtensions.NotFoundProblem();
+        }
+
+        var form = await req.ReadFormAsync();
+        var file = form.Files.GetFile("image");
+        if (!ImageUploadValidation.TryValidate(file, out var extension, out var error))
+        {
+            return HttpResponseExtensions.BadRequestProblem(error);
+        }
+
+        await using var stream = file!.OpenReadStream();
+        var url = await _images.UploadAsync("users", stream, file.ContentType, extension);
+
+        await _images.DeleteAsync(user.ImageUrl);
+        user.ImageUrl = url;
+        user = await _users.UpdateAsync(user);
+
+        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl));
+    }
+
+    [Function("DeleteProfileImage")]
+    public async Task<IActionResult> DeleteProfileImage(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "users/me/image")] HttpRequest req)
+    {
+        var userId = req.HttpContext.User.GetUserId();
+        if (userId is null)
+        {
+            return HttpResponseExtensions.UnauthorizedProblem();
+        }
+
+        var user = await _users.GetByIdAsync(userId);
+        if (user is null)
+        {
+            return HttpResponseExtensions.NotFoundProblem();
+        }
+
+        await _images.DeleteAsync(user.ImageUrl);
+        user.ImageUrl = null;
+        user = await _users.UpdateAsync(user);
+
+        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl));
     }
 }

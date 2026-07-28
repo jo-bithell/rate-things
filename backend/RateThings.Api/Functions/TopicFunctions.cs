@@ -5,14 +5,20 @@ using RateThings.Api.Common;
 using RateThings.Api.Dto;
 using RateThings.Api.Models;
 using RateThings.Api.Repositories;
+using RateThings.Api.Services;
 
 namespace RateThings.Api.Functions;
 
 public class TopicFunctions
 {
     private readonly ITopicRepository _topics;
+    private readonly IImageStorageService _images;
 
-    public TopicFunctions(ITopicRepository topics) => _topics = topics;
+    public TopicFunctions(ITopicRepository topics, IImageStorageService images)
+    {
+        _topics = topics;
+        _images = images;
+    }
 
     [Function("GetTopics")]
     public async Task<IActionResult> GetTopics(
@@ -126,10 +132,77 @@ public class TopicFunctions
             return HttpResponseExtensions.ForbiddenProblem("Only the creator can delete this topic.");
         }
 
+        await _images.DeleteAsync(topic.ImageUrl);
         await _topics.DeleteAsync(id);
         return new NoContentResult();
     }
 
+    [Function("UploadTopicImage")]
+    public async Task<IActionResult> UploadTopicImage(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "topics/{id}/image")] HttpRequest req, string id)
+    {
+        var userId = req.HttpContext.User.GetUserId();
+        if (userId is null)
+        {
+            return HttpResponseExtensions.UnauthorizedProblem();
+        }
+
+        var topic = await _topics.GetByIdAsync(id);
+        if (topic is null)
+        {
+            return HttpResponseExtensions.NotFoundProblem();
+        }
+
+        if (topic.CreatedBy != userId)
+        {
+            return HttpResponseExtensions.ForbiddenProblem("Only the creator can change this topic's image.");
+        }
+
+        var form = await req.ReadFormAsync();
+        var file = form.Files.GetFile("image");
+        if (!ImageUploadValidation.TryValidate(file, out var extension, out var error))
+        {
+            return HttpResponseExtensions.BadRequestProblem(error);
+        }
+
+        await using var stream = file!.OpenReadStream();
+        var url = await _images.UploadAsync("topics", stream, file.ContentType, extension);
+
+        await _images.DeleteAsync(topic.ImageUrl);
+        topic.ImageUrl = url;
+        topic = await _topics.UpdateAsync(topic);
+
+        return new OkObjectResult(ToDto(topic));
+    }
+
+    [Function("DeleteTopicImage")]
+    public async Task<IActionResult> DeleteTopicImage(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "topics/{id}/image")] HttpRequest req, string id)
+    {
+        var userId = req.HttpContext.User.GetUserId();
+        if (userId is null)
+        {
+            return HttpResponseExtensions.UnauthorizedProblem();
+        }
+
+        var topic = await _topics.GetByIdAsync(id);
+        if (topic is null)
+        {
+            return HttpResponseExtensions.NotFoundProblem();
+        }
+
+        if (topic.CreatedBy != userId)
+        {
+            return HttpResponseExtensions.ForbiddenProblem("Only the creator can change this topic's image.");
+        }
+
+        await _images.DeleteAsync(topic.ImageUrl);
+        topic.ImageUrl = null;
+        topic = await _topics.UpdateAsync(topic);
+
+        return new OkObjectResult(ToDto(topic));
+    }
+
     private static TopicDto ToDto(TopicDocument t) =>
-        new(t.Id, t.Name, t.Description, t.CreatedBy, t.CreatedByName, t.CreatedAt, t.UpdatedAt);
+        new(t.Id, t.Name, t.Description, t.ImageUrl, t.CreatedBy, t.CreatedByName, t.CreatedAt, t.UpdatedAt);
 }

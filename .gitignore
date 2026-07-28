@@ -19,3 +19,4 @@ infra/**/*.auto.tfvars
 Thumbs.db
 .vscode/
 .idea/
+.vs/

@@ -59,7 +59,7 @@ public class AuthFunctions
 
         _logger.LogInformation("New user registered: {UserId}", user.Id);
 
-        return new ObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName)))
+        return new ObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl)))
         {
             StatusCode = StatusCodes.Status201Created,
         };
@@ -82,6 +82,6 @@ public class AuthFunctions
         }
 
         var token = _jwtService.GenerateToken(user);
-        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName)));
+        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl)));
     }
 }

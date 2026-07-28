@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import type { Entity, ListSummary, Topic } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
+import ImageUploader from '../components/ImageUploader'
 
 type Tab = 'entities' | 'lists'
 
@@ -138,6 +139,16 @@ export default function TopicDetailPage() {
     }
   }
 
+  const handleUploadTopicImage = async (file: File) => {
+    if (!topicId) return
+    setTopic(await api.uploadTopicImage(topicId, file))
+  }
+
+  const handleRemoveTopicImage = async () => {
+    if (!topicId) return
+    setTopic(await api.deleteTopicImage(topicId))
+  }
+
   const handleDeleteTopic = async () => {
     if (!topicId || !topic) return
     if (!confirm(`Delete "${topic.name}"? This removes the topic but not its entities or lists.`)) return
@@ -170,6 +181,18 @@ export default function TopicDetailPage() {
           </div>
         )}
       </div>
+
+      {isOwner && (
+        <div className="mt-3">
+          <ImageUploader
+            imageUrl={topic.imageUrl}
+            alt={topic.name}
+            placeholder="🗂️"
+            onUpload={handleUploadTopicImage}
+            onRemove={handleRemoveTopicImage}
+          />
+        </div>
+      )}
 
       {editingTopic && (
         <form onSubmit={handleEditTopic} className="card mt-3 space-y-3">
@@ -264,11 +287,16 @@ export default function TopicDetailPage() {
               {entities.map((e) => (
                 <li key={e.id}>
                   <Link to={`/entities/${e.id}`} className="card-link flex items-center justify-between gap-3">
-                    <div>
-                      <div className="font-bold">{e.name}</div>
-                      {e.tags.length > 0 && (
-                        <div className="text-xs text-stone-400 mt-1">{e.tags.join(', ')}</div>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {e.imageUrl && (
+                        <img src={e.imageUrl} alt="" className="w-10 h-10 rounded-xl border-2 border-stone-900 object-cover shrink-0" />
                       )}
+                      <div className="min-w-0">
+                        <div className="font-bold truncate">{e.name}</div>
+                        {e.tags.length > 0 && (
+                          <div className="text-xs text-stone-400 mt-1">{e.tags.join(', ')}</div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex flex-col items-center gap-1 shrink-0">
                       <div className="score-badge text-sm">{e.ratingCount > 0 ? e.avgRating.toFixed(1) : '—'}</div>

@@ -6,6 +6,7 @@ import type { Entity } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
 import ScoreInput from '../components/ScoreInput'
 import LoadingSpinner from '../components/LoadingSpinner'
+import ImageUploader from '../components/ImageUploader'
 
 export default function EntityDetailPage() {
   const { entityId } = useParams<{ entityId: string }>()
@@ -108,6 +109,16 @@ export default function EntityDetailPage() {
     }
   }
 
+  const handleUploadImage = async (file: File) => {
+    if (!entityId) return
+    setEntity(await api.uploadEntityImage(entityId, file))
+  }
+
+  const handleRemoveImage = async () => {
+    if (!entityId) return
+    setEntity(await api.deleteEntityImage(entityId))
+  }
+
   const handleDelete = async () => {
     if (!entityId || !entity || deleting) return
     if (!confirm(`Delete "${entity.name}"? This can't be undone.`)) return
@@ -159,6 +170,18 @@ export default function EntityDetailPage() {
           <button onClick={handleDelete} disabled={deleting} className="btn-danger-link disabled:opacity-50">
             {deleting ? 'Deleting…' : 'Delete'}
           </button>
+        </div>
+      )}
+
+      {isOwner && (
+        <div className="mt-3">
+          <ImageUploader
+            imageUrl={entity.imageUrl}
+            alt={entity.name}
+            placeholder="🖼️"
+            onUpload={handleUploadImage}
+            onRemove={handleRemoveImage}
+          />
         </div>
       )}
 

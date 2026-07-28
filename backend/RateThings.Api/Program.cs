@@ -38,6 +38,7 @@ var host = new HostBuilder()
 
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IJwtService, JwtService>();
+        services.AddSingleton<IImageStorageService, ImageStorageService>();
 
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();

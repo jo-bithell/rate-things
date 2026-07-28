@@ -18,16 +18,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken()
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string> | undefined),
-  }
-  if (token) headers.Authorization = `Bearer ${token}`
-
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
-
+async function handleResponse<T>(res: Response): Promise<T> {
   if (res.status === 204) return undefined as T
 
   const isJson = res.headers.get('content-type')?.includes('application/json')
@@ -39,6 +30,29 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   return body as T
+}
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = getToken()
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> | undefined),
+  }
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
+  return handleResponse<T>(res)
+}
+
+/** Like `request`, but sends a multipart body (e.g. image upload) — no Content-Type
+ *  header, so the browser sets it with the correct multipart boundary itself. */
+async function requestForm<T>(path: string, formData: FormData, method: string): Promise<T> {
+  const token = getToken()
+  const headers: Record<string, string> = {}
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const res = await fetch(`${API_BASE}${path}`, { method, headers, body: formData })
+  return handleResponse<T>(res)
 }
 
 export const api = {
@@ -71,6 +85,14 @@ export const api = {
   deleteAccount: (password: string) =>
     request<void>('/users/me', { method: 'DELETE', body: JSON.stringify({ password }) }),
 
+  uploadProfileImage: (file: File) => {
+    const form = new FormData()
+    form.append('image', file)
+    return requestForm<User>('/users/me/image', form, 'POST')
+  },
+
+  deleteProfileImage: () => request<User>('/users/me/image', { method: 'DELETE' }),
+
   getTopics: (search?: string) =>
     request<Topic[]>(`/topics${search ? `?search=${encodeURIComponent(search)}` : ''}`),
 
@@ -83,6 +105,14 @@ export const api = {
     request<Topic>(`/topics/${id}`, { method: 'PUT', body: JSON.stringify({ name, description }) }),
 
   deleteTopic: (id: string) => request<void>(`/topics/${id}`, { method: 'DELETE' }),
+
+  uploadTopicImage: (id: string, file: File) => {
+    const form = new FormData()
+    form.append('image', file)
+    return requestForm<Topic>(`/topics/${id}/image`, form, 'POST')
+  },
+
+  deleteTopicImage: (id: string) => request<Topic>(`/topics/${id}/image`, { method: 'DELETE' }),
 
   getEntities: (topicId: string, search?: string, tag?: string) => {
     const params = new URLSearchParams()
@@ -109,6 +139,14 @@ export const api = {
     }),
 
   deleteEntity: (id: string) => request<void>(`/entities/${id}`, { method: 'DELETE' }),
+
+  uploadEntityImage: (id: string, file: File) => {
+    const form = new FormData()
+    form.append('image', file)
+    return requestForm<Entity>(`/entities/${id}/image`, form, 'POST')
+  },
+
+  deleteEntityImage: (id: string) => request<Entity>(`/entities/${id}/image`, { method: 'DELETE' }),
 
   upsertRating: (entityId: string, score: number, comment?: string) =>
     request<Entity>(`/entities/${entityId}/rating`, {

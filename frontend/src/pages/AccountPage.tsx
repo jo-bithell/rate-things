@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError } from '../api/client'
 import ErrorBanner from '../components/ErrorBanner'
+import ImageUploader from '../components/ImageUploader'
 
 export default function AccountPage() {
-  const { user, updateProfile, changePassword, deleteAccount } = useAuth()
+  const { user, updateProfile, changePassword, deleteAccount, uploadProfileImage, removeProfileImage } = useAuth()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState(user?.email ?? '')
@@ -87,6 +88,16 @@ export default function AccountPage() {
         <h2 className="font-display font-bold mb-3">Profile</h2>
         <ErrorBanner message={profileError} />
         {profileMessage && <p className="text-sm text-emerald-700 mb-3">{profileMessage}</p>}
+        <div className="mb-4">
+          <ImageUploader
+            imageUrl={user?.imageUrl}
+            alt={user?.displayName ?? 'Profile picture'}
+            placeholder="🙂"
+            shape="circle"
+            onUpload={uploadProfileImage}
+            onRemove={removeProfileImage}
+          />
+        </div>
         <form onSubmit={handleSaveProfile} className="space-y-3">
           <div>
             <label className="block text-sm font-semibold text-stone-700 mb-1">Email</label>

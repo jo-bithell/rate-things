@@ -2,12 +2,14 @@ export interface User {
   id: string
   email: string
   displayName: string
+  imageUrl?: string
 }
 
 export interface Topic {
   id: string
   name: string
   description?: string
+  imageUrl?: string
   createdBy: string
   createdByName: string
   createdAt: string

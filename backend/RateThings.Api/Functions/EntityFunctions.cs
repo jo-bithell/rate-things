@@ -5,6 +5,7 @@ using RateThings.Api.Common;
 using RateThings.Api.Dto;
 using RateThings.Api.Models;
 using RateThings.Api.Repositories;
+using RateThings.Api.Services;
 
 namespace RateThings.Api.Functions;
 
@@ -12,11 +13,13 @@ public class EntityFunctions
 {
     private readonly IEntityRepository _entities;
     private readonly ITopicRepository _topics;
+    private readonly IImageStorageService _images;
 
-    public EntityFunctions(IEntityRepository entities, ITopicRepository topics)
+    public EntityFunctions(IEntityRepository entities, ITopicRepository topics, IImageStorageService images)
     {
         _entities = entities;
         _topics = topics;
+        _images = images;
     }
 
     [Function("GetEntities")]
@@ -156,8 +159,75 @@ public class EntityFunctions
             return HttpResponseExtensions.ForbiddenProblem("Only the creator can delete this entity.");
         }
 
+        await _images.DeleteAsync(entity.ImageUrl);
         await _entities.DeleteAsync(id, entity.TopicId);
         return new NoContentResult();
+    }
+
+    [Function("UploadEntityImage")]
+    public async Task<IActionResult> UploadEntityImage(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "entities/{id}/image")] HttpRequest req, string id)
+    {
+        var userId = req.HttpContext.User.GetUserId();
+        if (userId is null)
+        {
+            return HttpResponseExtensions.UnauthorizedProblem();
+        }
+
+        var entity = await _entities.GetByIdAsync(id);
+        if (entity is null)
+        {
+            return HttpResponseExtensions.NotFoundProblem();
+        }
+
+        if (entity.CreatedBy != userId)
+        {
+            return HttpResponseExtensions.ForbiddenProblem("Only the creator can change this entity's image.");
+        }
+
+        var form = await req.ReadFormAsync();
+        var file = form.Files.GetFile("image");
+        if (!ImageUploadValidation.TryValidate(file, out var extension, out var error))
+        {
+            return HttpResponseExtensions.BadRequestProblem(error);
+        }
+
+        await using var stream = file!.OpenReadStream();
+        var url = await _images.UploadAsync("entities", stream, file.ContentType, extension);
+
+        await _images.DeleteAsync(entity.ImageUrl);
+        entity.ImageUrl = url;
+        entity = await _entities.UpdateAsync(entity);
+
+        return new OkObjectResult(ToDto(entity));
+    }
+
+    [Function("DeleteEntityImage")]
+    public async Task<IActionResult> DeleteEntityImage(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "entities/{id}/image")] HttpRequest req, string id)
+    {
+        var userId = req.HttpContext.User.GetUserId();
+        if (userId is null)
+        {
+            return HttpResponseExtensions.UnauthorizedProblem();
+        }
+
+        var entity = await _entities.GetByIdAsync(id);
+        if (entity is null)
+        {
+            return HttpResponseExtensions.NotFoundProblem();
+        }
+
+        if (entity.CreatedBy != userId)
+        {
+            return HttpResponseExtensions.ForbiddenProblem("Only the creator can change this entity's image.");
+        }
+
+        await _images.DeleteAsync(entity.ImageUrl);
+        entity.ImageUrl = null;
+        entity = await _entities.UpdateAsync(entity);
+
+        return new OkObjectResult(ToDto(entity));
     }
 
     private static List<string> NormalizeTags(List<string>? tags) =>
