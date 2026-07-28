@@ -4,7 +4,7 @@ import { ApiError } from '../api/client'
 interface Props {
   imageUrl?: string
   alt: string
-  placeholder: string
+  placeholder?: string
   shape?: 'circle' | 'square'
   onUpload: (file: File) => Promise<void>
   onRemove: () => Promise<void>
@@ -62,7 +62,7 @@ export default function ImageUploader({ imageUrl, alt, placeholder, shape = 'squ
       <div
         className={`w-20 h-20 shrink-0 border-2 border-stone-900 ${shapeClass} bg-amber-100 flex items-center justify-center overflow-hidden text-3xl`}
       >
-        {imageUrl ? <img src={imageUrl} alt={alt} className="w-full h-full object-cover" /> : placeholder}
+        {imageUrl ? <img src={imageUrl} alt={alt} className="w-full h-full object-cover" /> : placeholder ?? null}
       </div>
       <div className="space-y-1">
         <div className="flex items-center gap-3">

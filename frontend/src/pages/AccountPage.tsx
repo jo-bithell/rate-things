@@ -92,7 +92,6 @@ export default function AccountPage() {
           <ImageUploader
             imageUrl={user?.imageUrl}
             alt={user?.displayName ?? 'Profile picture'}
-            placeholder="🙂"
             shape="circle"
             onUpload={uploadProfileImage}
             onRemove={removeProfileImage}
