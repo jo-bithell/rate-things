@@ -27,9 +27,11 @@ export default function NavBar() {
             <NavLink to="/topics" className={linkClass}>Topics</NavLink>
             <NavLink to="/account" className={linkClass}>
               <span className="inline-flex items-center gap-1.5">
-                {user.imageUrl && (
-                  <img src={user.imageUrl} alt="" className="w-5 h-5 rounded-full border border-stone-900 object-cover" />
-                )}
+                <span className="w-5 h-5 shrink-0 rounded-full overflow-hidden">
+                  {user.imageUrl && (
+                    <img src={user.imageUrl} alt="" className="w-full h-full rounded-full border border-stone-900 object-cover" />
+                  )}
+                </span>
                 Account
               </span>
             </NavLink>
