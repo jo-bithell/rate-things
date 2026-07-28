@@ -23,6 +23,9 @@ export default function EntityDetailPage() {
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [editTags, setEditTags] = useState('')
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [removingRating, setRemovingRating] = useState(false)
 
   const load = async () => {
     if (!entityId) return
@@ -70,7 +73,8 @@ export default function EntityDetailPage() {
   }
 
   const handleRemoveRating = async () => {
-    if (!entityId) return
+    if (!entityId || removingRating) return
+    setRemovingRating(true)
     try {
       const updated = await api.deleteRating(entityId)
       setEntity(updated)
@@ -78,12 +82,15 @@ export default function EntityDetailPage() {
       setComment('')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to remove rating.')
+    } finally {
+      setRemovingRating(false)
     }
   }
 
   const handleEdit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!entityId || !editName.trim()) return
+    if (!entityId || !editName.trim() || savingEdit) return
+    setSavingEdit(true)
     try {
       const updated = await api.updateEntity(
         entityId,
@@ -95,17 +102,21 @@ export default function EntityDetailPage() {
       setEditing(false)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to update entity.')
+    } finally {
+      setSavingEdit(false)
     }
   }
 
   const handleDelete = async () => {
-    if (!entityId || !entity) return
+    if (!entityId || !entity || deleting) return
     if (!confirm(`Delete "${entity.name}"? This can't be undone.`)) return
+    setDeleting(true)
     try {
       await api.deleteEntity(entityId)
       navigate(`/topics/${entity.topicId}`)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to delete entity.')
+      setDeleting(false)
     }
   }
 
@@ -144,7 +155,9 @@ export default function EntityDetailPage() {
           <button onClick={() => setEditing((v) => !v)} className="btn-link">
             {editing ? 'Cancel edit' : 'Edit'}
           </button>
-          <button onClick={handleDelete} className="btn-danger-link">Delete</button>
+          <button onClick={handleDelete} disabled={deleting} className="btn-danger-link disabled:opacity-50">
+            {deleting ? 'Deleting…' : 'Delete'}
+          </button>
         </div>
       )}
 
@@ -153,7 +166,7 @@ export default function EntityDetailPage() {
           <input value={editName} onChange={(e) => setEditName(e.target.value)} className="input-field" />
           <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="Description" className="input-field" />
           <input value={editTags} onChange={(e) => setEditTags(e.target.value)} placeholder="Tags, comma separated" className="input-field" />
-          <button type="submit" className="btn-primary">Save</button>
+          <button type="submit" disabled={savingEdit} className="btn-primary">{savingEdit ? 'Saving…' : 'Save'}</button>
         </form>
       )}
 
@@ -173,7 +186,9 @@ export default function EntityDetailPage() {
               {savingRating ? 'Saving…' : 'Save rating'}
             </button>
             {entity.ratings.some((r) => r.userId === user?.id) && (
-              <button type="button" onClick={handleRemoveRating} className="btn-danger-link">Remove my rating</button>
+              <button type="button" onClick={handleRemoveRating} disabled={removingRating} className="btn-danger-link disabled:opacity-50">
+                {removingRating ? 'Removing…' : 'Remove my rating'}
+              </button>
             )}
           </div>
         </form>

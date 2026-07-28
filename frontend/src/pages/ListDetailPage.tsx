@@ -18,6 +18,9 @@ export default function ListDetailPage() {
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [reordering, setReordering] = useState(false)
 
   const [addSearch, setAddSearch] = useState('')
 
@@ -56,15 +59,19 @@ export default function ListDetailPage() {
   const isOwner = user?.id === list?.ownerId
 
   const persistOrder = async (entityIds: string[]) => {
-    if (!listId) return
+    if (!listId || reordering) return
+    setReordering(true)
     try {
       setList(await api.replaceListEntries(listId, entityIds))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to update list.')
+    } finally {
+      setReordering(false)
     }
   }
 
   const move = (index: number, direction: -1 | 1) => {
+    if (reordering) return
     const ids = orderedEntries.map((e) => e.entityId)
     const target = index + direction
     if (target < 0 || target >= ids.length) return
@@ -73,11 +80,13 @@ export default function ListDetailPage() {
   }
 
   const removeEntry = (entityId: string) => {
+    if (reordering) return
     const ids = orderedEntries.map((e) => e.entityId).filter((id) => id !== entityId)
     persistOrder(ids)
   }
 
   const addEntry = (entityId: string) => {
+    if (reordering) return
     const ids = [...orderedEntries.map((e) => e.entityId), entityId]
     persistOrder(ids)
     setAddSearch('')
@@ -85,23 +94,28 @@ export default function ListDetailPage() {
 
   const handleEdit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!listId || !editName.trim()) return
+    if (!listId || !editName.trim() || savingEdit) return
+    setSavingEdit(true)
     try {
       setList(await api.updateList(listId, editName.trim(), editDescription.trim() || undefined))
       setEditing(false)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to update list.')
+    } finally {
+      setSavingEdit(false)
     }
   }
 
   const handleDelete = async () => {
-    if (!listId || !list) return
+    if (!listId || !list || deleting) return
     if (!confirm(`Delete "${list.name}"? This can't be undone.`)) return
+    setDeleting(true)
     try {
       await api.deleteList(listId)
       navigate(`/topics/${list.topicId}`)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to delete list.')
+      setDeleting(false)
     }
   }
 
@@ -127,7 +141,9 @@ export default function ListDetailPage() {
         {isOwner && (
           <div className="text-sm shrink-0 flex gap-3">
             <button onClick={() => setEditing((v) => !v)} className="btn-link">{editing ? 'Cancel' : 'Edit'}</button>
-            <button onClick={handleDelete} className="btn-danger-link">Delete</button>
+            <button onClick={handleDelete} disabled={deleting} className="btn-danger-link disabled:opacity-50">
+              {deleting ? 'Deleting…' : 'Delete'}
+            </button>
           </div>
         )}
       </div>
@@ -136,7 +152,7 @@ export default function ListDetailPage() {
         <form onSubmit={handleEdit} className="card mt-3 space-y-3">
           <input value={editName} onChange={(e) => setEditName(e.target.value)} className="input-field" />
           <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="Description" className="input-field" />
-          <button type="submit" className="btn-primary">Save</button>
+          <button type="submit" disabled={savingEdit} className="btn-primary">{savingEdit ? 'Saving…' : 'Save'}</button>
         </form>
       )}
 
@@ -161,9 +177,9 @@ export default function ListDetailPage() {
                   </div>
                   {isOwner && (
                     <div className="flex items-center gap-2 text-stone-400">
-                      <button onClick={() => move(index, -1)} disabled={index === 0} className="disabled:opacity-30 hover:text-fuchsia-600">▲</button>
-                      <button onClick={() => move(index, 1)} disabled={index === orderedEntries.length - 1} className="disabled:opacity-30 hover:text-fuchsia-600">▼</button>
-                      <button onClick={() => removeEntry(entry.entityId)} className="text-rose-500 ml-1 hover:text-rose-700">✕</button>
+                      <button onClick={() => move(index, -1)} disabled={reordering || index === 0} className="disabled:opacity-30 hover:text-fuchsia-600">▲</button>
+                      <button onClick={() => move(index, 1)} disabled={reordering || index === orderedEntries.length - 1} className="disabled:opacity-30 hover:text-fuchsia-600">▼</button>
+                      <button onClick={() => removeEntry(entry.entityId)} disabled={reordering} className="text-rose-500 ml-1 hover:text-rose-700 disabled:opacity-30">✕</button>
                     </div>
                   )}
                 </li>
@@ -191,7 +207,8 @@ export default function ListDetailPage() {
                   <li key={e.id}>
                     <button
                       onClick={() => addEntry(e.id)}
-                      className="w-full text-left bg-white border-2 border-stone-300 rounded-xl px-3 py-2 hover:border-fuchsia-400 text-sm transition-colors"
+                      disabled={reordering}
+                      className="w-full text-left bg-white border-2 border-stone-300 rounded-xl px-3 py-2 hover:border-fuchsia-400 text-sm transition-colors disabled:opacity-50"
                     >
                       {e.name}
                     </button>

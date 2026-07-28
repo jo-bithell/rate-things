@@ -17,6 +17,7 @@ export default function TopicDetailPage() {
   const [editingTopic, setEditingTopic] = useState(false)
   const [editTopicName, setEditTopicName] = useState('')
   const [editTopicDescription, setEditTopicDescription] = useState('')
+  const [savingTopic, setSavingTopic] = useState(false)
 
   const [entities, setEntities] = useState<Entity[]>([])
   const [tags, setTags] = useState<string[]>([])
@@ -26,10 +27,12 @@ export default function TopicDetailPage() {
   const [newEntityName, setNewEntityName] = useState('')
   const [newEntityDescription, setNewEntityDescription] = useState('')
   const [newEntityTags, setNewEntityTags] = useState('')
+  const [creatingEntity, setCreatingEntity] = useState(false)
 
   const [lists, setLists] = useState<ListSummary[]>([])
   const [showCreateList, setShowCreateList] = useState(false)
   const [newListName, setNewListName] = useState('')
+  const [creatingList, setCreatingList] = useState(false)
 
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -79,8 +82,9 @@ export default function TopicDetailPage() {
 
   const handleCreateEntity = async (e: FormEvent) => {
     e.preventDefault()
-    if (!topicId || !newEntityName.trim()) return
+    if (!topicId || !newEntityName.trim() || creatingEntity) return
     setError(null)
+    setCreatingEntity(true)
     try {
       await api.createEntity(
         topicId,
@@ -92,36 +96,44 @@ export default function TopicDetailPage() {
       setNewEntityDescription('')
       setNewEntityTags('')
       setShowCreateEntity(false)
-      loadEntities(search, activeTag)
+      await loadEntities(search, activeTag)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to create entity.')
+    } finally {
+      setCreatingEntity(false)
     }
   }
 
   const handleCreateList = async (e: FormEvent) => {
     e.preventDefault()
-    if (!topicId || !newListName.trim()) return
+    if (!topicId || !newListName.trim() || creatingList) return
     setError(null)
+    setCreatingList(true)
     try {
       await api.createList(topicId, newListName.trim())
       setNewListName('')
       setShowCreateList(false)
-      loadLists()
+      await loadLists()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to create list.')
+    } finally {
+      setCreatingList(false)
     }
   }
 
   const handleEditTopic = async (e: FormEvent) => {
     e.preventDefault()
-    if (!topicId || !editTopicName.trim()) return
+    if (!topicId || !editTopicName.trim() || savingTopic) return
     setError(null)
+    setSavingTopic(true)
     try {
       const updated = await api.updateTopic(topicId, editTopicName.trim(), editTopicDescription.trim() || undefined)
       setTopic(updated)
       setEditingTopic(false)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to update topic.')
+    } finally {
+      setSavingTopic(false)
     }
   }
 
@@ -162,7 +174,7 @@ export default function TopicDetailPage() {
         <form onSubmit={handleEditTopic} className="card mt-3 space-y-3">
           <input value={editTopicName} onChange={(e) => setEditTopicName(e.target.value)} className="input-field" />
           <input value={editTopicDescription} onChange={(e) => setEditTopicDescription(e.target.value)} placeholder="Description" className="input-field" />
-          <button type="submit" className="btn-primary">Save</button>
+          <button type="submit" disabled={savingTopic} className="btn-primary">{savingTopic ? 'Saving…' : 'Save'}</button>
         </form>
       )}
 
@@ -215,8 +227,8 @@ export default function TopicDetailPage() {
               <p className="text-xs text-stone-400">
                 Search first — each entity should exist once per topic. If it's already here, rate it instead of re-adding it.
               </p>
-              <button type="submit" className="btn-primary">
-                Add entity
+              <button type="submit" disabled={creatingEntity} className="btn-primary">
+                {creatingEntity ? 'Adding…' : 'Add entity'}
               </button>
             </form>
           )}
@@ -286,8 +298,8 @@ export default function TopicDetailPage() {
                 onChange={(e) => setNewListName(e.target.value)}
                 className="input-field"
               />
-              <button type="submit" className="btn-primary">
-                Create list
+              <button type="submit" disabled={creatingList} className="btn-primary">
+                {creatingList ? 'Creating…' : 'Create list'}
               </button>
             </form>
           )}
