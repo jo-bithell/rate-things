@@ -55,11 +55,8 @@ export default function TopicsPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 pb-20 sm:pb-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold">Topics</h1>
-        <button
-          onClick={() => setShowCreate((v) => !v)}
-          className="bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-indigo-700"
-        >
+        <h1 className="text-2xl font-display font-bold">Topics 🎉</h1>
+        <button onClick={() => setShowCreate((v) => !v)} className="btn-primary">
           {showCreate ? 'Cancel' : '+ New topic'}
         </button>
       </div>
@@ -67,25 +64,21 @@ export default function TopicsPage() {
       <ErrorBanner message={error} />
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="bg-white border border-slate-200 rounded-lg p-4 mb-4 space-y-3">
+        <form onSubmit={handleCreate} className="card mb-4 space-y-3">
           <input
             placeholder="Topic name (e.g. Movies)"
             required
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            className="input-field"
           />
           <input
             placeholder="Description (optional)"
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            className="input-field"
           />
-          <button
-            type="submit"
-            disabled={creating}
-            className="bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50"
-          >
+          <button type="submit" disabled={creating} className="btn-primary">
             {creating ? 'Creating…' : 'Create topic'}
           </button>
         </form>
@@ -96,25 +89,22 @@ export default function TopicsPage() {
           placeholder="Search topics…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-md border border-slate-300 px-3 py-2"
+          className="input-field"
         />
       </form>
 
       {loading ? (
-        <p className="text-slate-500 text-sm">Loading…</p>
+        <p className="text-stone-500 text-sm">Loading…</p>
       ) : topics.length === 0 ? (
-        <p className="text-slate-500 text-sm">No topics yet. Create the first one.</p>
+        <p className="text-stone-500 text-sm">No topics yet. Create the first one.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {topics.map((t) => (
             <li key={t.id}>
-              <Link
-                to={`/topics/${t.id}`}
-                className="block bg-white border border-slate-200 rounded-lg p-4 hover:border-indigo-400"
-              >
-                <div className="font-semibold">{t.name}</div>
-                {t.description && <div className="text-sm text-slate-500">{t.description}</div>}
-                <div className="text-xs text-slate-400 mt-1">Started by {t.createdByName}</div>
+              <Link to={`/topics/${t.id}`} className="card-link">
+                <div className="font-bold">{t.name}</div>
+                {t.description && <div className="text-sm text-stone-500">{t.description}</div>}
+                <div className="text-xs text-stone-400 mt-1">Started by {t.createdByName}</div>
               </Link>
             </li>
           ))}

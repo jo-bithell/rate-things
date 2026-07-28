@@ -100,27 +100,27 @@ export default function TopicDetailPage() {
     }
   }
 
-  if (loading) return <div className="p-6 text-center text-slate-500">Loading…</div>
-  if (!topic) return <div className="p-6 text-center text-slate-500">Topic not found.</div>
+  if (loading) return <div className="p-6 text-center text-stone-500">Loading…</div>
+  if (!topic) return <div className="p-6 text-center text-stone-500">Topic not found.</div>
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 pb-20 sm:pb-6">
-      <Link to="/topics" className="text-sm text-indigo-600">&larr; All topics</Link>
-      <h1 className="text-xl font-bold mt-2">{topic.name}</h1>
-      {topic.description && <p className="text-slate-500 text-sm mt-1">{topic.description}</p>}
+      <Link to="/topics" className="text-sm font-semibold text-fuchsia-600">&larr; All topics</Link>
+      <h1 className="text-2xl font-display font-bold mt-2">{topic.name}</h1>
+      {topic.description && <p className="text-stone-500 text-sm mt-1">{topic.description}</p>}
 
       <ErrorBanner message={error} />
 
-      <div className="flex gap-2 mt-4 border-b border-slate-200">
+      <div className="flex gap-2 mt-4 border-b-2 border-stone-200">
         <button
           onClick={() => setTab('entities')}
-          className={`px-3 py-2 text-sm font-medium border-b-2 ${tab === 'entities' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500'}`}
+          className={`px-3 py-2 text-sm font-bold border-b-4 -mb-0.5 ${tab === 'entities' ? 'border-fuchsia-500 text-fuchsia-600' : 'border-transparent text-stone-500'}`}
         >
           Entities
         </button>
         <button
           onClick={() => setTab('lists')}
-          className={`px-3 py-2 text-sm font-medium border-b-2 ${tab === 'lists' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500'}`}
+          className={`px-3 py-2 text-sm font-bold border-b-4 -mb-0.5 ${tab === 'lists' ? 'border-fuchsia-500 text-fuchsia-600' : 'border-transparent text-stone-500'}`}
         >
           Lists
         </button>
@@ -129,39 +129,36 @@ export default function TopicDetailPage() {
       {tab === 'entities' && (
         <div className="mt-4">
           <div className="flex justify-end mb-3">
-            <button
-              onClick={() => setShowCreateEntity((v) => !v)}
-              className="bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-indigo-700"
-            >
+            <button onClick={() => setShowCreateEntity((v) => !v)} className="btn-primary">
               {showCreateEntity ? 'Cancel' : '+ Add entity'}
             </button>
           </div>
 
           {showCreateEntity && (
-            <form onSubmit={handleCreateEntity} className="bg-white border border-slate-200 rounded-lg p-4 mb-4 space-y-3">
+            <form onSubmit={handleCreateEntity} className="card mb-4 space-y-3">
               <input
                 placeholder="Name (e.g. Inception)"
                 required
                 value={newEntityName}
                 onChange={(e) => setNewEntityName(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2"
+                className="input-field"
               />
               <input
                 placeholder="Description (optional)"
                 value={newEntityDescription}
                 onChange={(e) => setNewEntityDescription(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2"
+                className="input-field"
               />
               <input
                 placeholder="Tags, comma separated (e.g. sci-fi, thriller)"
                 value={newEntityTags}
                 onChange={(e) => setNewEntityTags(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2"
+                className="input-field"
               />
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-stone-400">
                 Search first — each entity should exist once per topic. If it's already here, rate it instead of re-adding it.
               </p>
-              <button type="submit" className="bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-indigo-700">
+              <button type="submit" className="btn-primary">
                 Add entity
               </button>
             </form>
@@ -172,7 +169,7 @@ export default function TopicDetailPage() {
               placeholder="Search entities…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
+              className="input-field"
             />
           </form>
 
@@ -182,9 +179,7 @@ export default function TopicDetailPage() {
                 <button
                   key={tag}
                   onClick={() => toggleTag(tag)}
-                  className={`text-xs px-2 py-1 rounded-full border ${
-                    activeTag === tag ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-300'
-                  }`}
+                  className={`pill ${activeTag === tag ? 'bg-fuchsia-500 text-white' : 'bg-white text-stone-600 hover:bg-amber-100'}`}
                 >
                   {tag}
                 </button>
@@ -193,24 +188,21 @@ export default function TopicDetailPage() {
           )}
 
           {entities.length === 0 ? (
-            <p className="text-slate-500 text-sm">No entities yet. Add the first one.</p>
+            <p className="text-stone-500 text-sm">No entities yet. Add the first one.</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {entities.map((e) => (
                 <li key={e.id}>
-                  <Link
-                    to={`/entities/${e.id}`}
-                    className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-4 hover:border-indigo-400"
-                  >
+                  <Link to={`/entities/${e.id}`} className="card-link flex items-center justify-between gap-3">
                     <div>
-                      <div className="font-semibold">{e.name}</div>
+                      <div className="font-bold">{e.name}</div>
                       {e.tags.length > 0 && (
-                        <div className="text-xs text-slate-400 mt-1">{e.tags.join(', ')}</div>
+                        <div className="text-xs text-stone-400 mt-1">{e.tags.join(', ')}</div>
                       )}
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-indigo-600">{e.ratingCount > 0 ? e.avgRating.toFixed(1) : '—'}<span className="text-xs text-slate-400">/10</span></div>
-                      <div className="text-xs text-slate-400">{e.ratingCount} rating{e.ratingCount === 1 ? '' : 's'}</div>
+                    <div className="flex flex-col items-center gap-1 shrink-0">
+                      <div className="score-badge text-sm">{e.ratingCount > 0 ? e.avgRating.toFixed(1) : '—'}</div>
+                      <div className="text-[10px] text-stone-400">{e.ratingCount} rating{e.ratingCount === 1 ? '' : 's'}</div>
                     </div>
                   </Link>
                 </li>
@@ -223,44 +215,38 @@ export default function TopicDetailPage() {
       {tab === 'lists' && (
         <div className="mt-4">
           <div className="flex justify-end mb-3">
-            <button
-              onClick={() => setShowCreateList((v) => !v)}
-              className="bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-indigo-700"
-            >
+            <button onClick={() => setShowCreateList((v) => !v)} className="btn-primary">
               {showCreateList ? 'Cancel' : '+ New list'}
             </button>
           </div>
 
           {showCreateList && (
-            <form onSubmit={handleCreateList} className="bg-white border border-slate-200 rounded-lg p-4 mb-4 space-y-3">
+            <form onSubmit={handleCreateList} className="card mb-4 space-y-3">
               <input
                 placeholder={`List name (e.g. "${user?.displayName ?? 'My'}'s Top 10")`}
                 required
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2"
+                className="input-field"
               />
-              <button type="submit" className="bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-indigo-700">
+              <button type="submit" className="btn-primary">
                 Create list
               </button>
             </form>
           )}
 
           {lists.length === 0 ? (
-            <p className="text-slate-500 text-sm">No lists yet for this topic. Start one.</p>
+            <p className="text-stone-500 text-sm">No lists yet for this topic. Start one.</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {lists.map((l) => (
                 <li key={l.id}>
-                  <Link
-                    to={`/lists/${l.id}`}
-                    className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-4 hover:border-indigo-400"
-                  >
+                  <Link to={`/lists/${l.id}`} className="card-link flex items-center justify-between">
                     <div>
-                      <div className="font-semibold">{l.name}</div>
-                      <div className="text-xs text-slate-400 mt-1">by {l.ownerName}</div>
+                      <div className="font-bold">{l.name}</div>
+                      <div className="text-xs text-stone-400 mt-1">by {l.ownerName}</div>
                     </div>
-                    <div className="text-sm text-slate-400">{l.entries.length} item{l.entries.length === 1 ? '' : 's'}</div>
+                    <div className="text-sm text-stone-400">{l.entries.length} item{l.entries.length === 1 ? '' : 's'}</div>
                   </Link>
                 </li>
               ))}

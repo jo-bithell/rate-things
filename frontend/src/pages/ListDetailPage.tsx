@@ -105,8 +105,8 @@ export default function ListDetailPage() {
     }
   }
 
-  if (loading) return <div className="p-6 text-center text-slate-500">Loading…</div>
-  if (!list) return <div className="p-6 text-center text-slate-500">List not found.</div>
+  if (loading) return <div className="p-6 text-center text-stone-500">Loading…</div>
+  if (!list) return <div className="p-6 text-center text-stone-500">List not found.</div>
 
   const candidateEntities = Object.values(entitiesById)
     .filter((e) => !orderedEntries.some((entry) => entry.entityId === e.id))
@@ -114,56 +114,56 @@ export default function ListDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-20 sm:pb-6">
-      <Link to={`/topics/${list.topicId}`} className="text-sm text-indigo-600">&larr; Back to topic</Link>
+      <Link to={`/topics/${list.topicId}`} className="text-sm font-semibold text-fuchsia-600">&larr; Back to topic</Link>
 
       <ErrorBanner message={error} />
 
-      <div className="flex items-start justify-between mt-2">
+      <div className="flex items-start justify-between mt-2 gap-3">
         <div>
-          <h1 className="text-xl font-bold">{list.name}</h1>
-          {list.description && <p className="text-slate-500 text-sm mt-1">{list.description}</p>}
-          <div className="text-xs text-slate-400 mt-1">by {list.ownerName}</div>
+          <h1 className="text-2xl font-display font-bold">{list.name}</h1>
+          {list.description && <p className="text-stone-500 text-sm mt-1">{list.description}</p>}
+          <div className="text-xs text-stone-400 mt-1">by {list.ownerName}</div>
         </div>
         {isOwner && (
-          <div className="text-sm shrink-0 ml-4 space-x-3">
-            <button onClick={() => setEditing((v) => !v)} className="text-indigo-600">{editing ? 'Cancel' : 'Edit'}</button>
-            <button onClick={handleDelete} className="text-red-600">Delete</button>
+          <div className="text-sm shrink-0 flex gap-3">
+            <button onClick={() => setEditing((v) => !v)} className="btn-link">{editing ? 'Cancel' : 'Edit'}</button>
+            <button onClick={handleDelete} className="btn-danger-link">Delete</button>
           </div>
         )}
       </div>
 
       {editing && (
-        <form onSubmit={handleEdit} className="bg-white border border-slate-200 rounded-lg p-4 mt-3 space-y-3">
-          <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full rounded-md border border-slate-300 px-3 py-2" />
-          <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="Description" className="w-full rounded-md border border-slate-300 px-3 py-2" />
-          <button type="submit" className="bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-indigo-700">Save</button>
+        <form onSubmit={handleEdit} className="card mt-3 space-y-3">
+          <input value={editName} onChange={(e) => setEditName(e.target.value)} className="input-field" />
+          <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="Description" className="input-field" />
+          <button type="submit" className="btn-primary">Save</button>
         </form>
       )}
 
       <div className="mt-6">
-        <h2 className="font-semibold mb-3">Entries</h2>
+        <h2 className="font-display font-bold mb-3">Entries</h2>
         {orderedEntries.length === 0 ? (
-          <p className="text-slate-500 text-sm">No entries yet. Add some below.</p>
+          <p className="text-stone-500 text-sm">No entries yet. Add some below.</p>
         ) : (
           <ol className="space-y-2">
             {orderedEntries.map((entry, index) => {
               const e = entitiesById[entry.entityId]
               return (
-                <li key={entry.entityId} className="flex items-center justify-between bg-white border border-slate-200 rounded-lg p-3">
+                <li key={entry.entityId} className="card py-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-slate-400 text-sm w-5">{index + 1}</span>
+                    <span className="score-badge w-7 h-7 text-xs bg-fuchsia-100 border-fuchsia-300">{index + 1}</span>
                     <div>
-                      <Link to={`/entities/${entry.entityId}`} className="font-medium hover:text-indigo-600">
+                      <Link to={`/entities/${entry.entityId}`} className="font-semibold hover:text-fuchsia-600">
                         {e?.name ?? 'Unknown entity'}
                       </Link>
-                      {e && <span className="text-xs text-slate-400 ml-2">{e.ratingCount > 0 ? `${e.avgRating.toFixed(1)}/10` : 'unrated'}</span>}
+                      {e && <span className="text-xs text-stone-400 ml-2">{e.ratingCount > 0 ? `${e.avgRating.toFixed(1)}/10` : 'unrated'}</span>}
                     </div>
                   </div>
                   {isOwner && (
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <button onClick={() => move(index, -1)} disabled={index === 0} className="disabled:opacity-30">▲</button>
-                      <button onClick={() => move(index, 1)} disabled={index === orderedEntries.length - 1} className="disabled:opacity-30">▼</button>
-                      <button onClick={() => removeEntry(entry.entityId)} className="text-red-500 ml-1">✕</button>
+                    <div className="flex items-center gap-2 text-stone-400">
+                      <button onClick={() => move(index, -1)} disabled={index === 0} className="disabled:opacity-30 hover:text-fuchsia-600">▲</button>
+                      <button onClick={() => move(index, 1)} disabled={index === orderedEntries.length - 1} className="disabled:opacity-30 hover:text-fuchsia-600">▼</button>
+                      <button onClick={() => removeEntry(entry.entityId)} className="text-rose-500 ml-1 hover:text-rose-700">✕</button>
                     </div>
                   )}
                 </li>
@@ -175,23 +175,23 @@ export default function ListDetailPage() {
 
       {isOwner && (
         <div className="mt-6">
-          <h2 className="font-semibold mb-3">Add from this topic</h2>
+          <h2 className="font-display font-bold mb-3">Add from this topic</h2>
           <input
             placeholder="Search entities to add…"
             value={addSearch}
             onChange={(e) => setAddSearch(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 mb-2"
+            className="input-field mb-2"
           />
           {addSearch && (
             <ul className="space-y-1 max-h-64 overflow-y-auto">
               {candidateEntities.length === 0 ? (
-                <li className="text-sm text-slate-400">No matches. You can create a new entity from the topic's Entities tab.</li>
+                <li className="text-sm text-stone-400">No matches. You can create a new entity from the topic's Entities tab.</li>
               ) : (
                 candidateEntities.map((e) => (
                   <li key={e.id}>
                     <button
                       onClick={() => addEntry(e.id)}
-                      className="w-full text-left bg-white border border-slate-200 rounded-md px-3 py-2 hover:border-indigo-400 text-sm"
+                      className="w-full text-left bg-white border-2 border-stone-300 rounded-xl px-3 py-2 hover:border-fuchsia-400 text-sm transition-colors"
                     >
                       {e.name}
                     </button>

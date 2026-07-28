@@ -109,92 +109,92 @@ export default function EntityDetailPage() {
     }
   }
 
-  if (loading) return <div className="p-6 text-center text-slate-500">Loading…</div>
-  if (!entity) return <div className="p-6 text-center text-slate-500">Entity not found.</div>
+  if (loading) return <div className="p-6 text-center text-stone-500">Loading…</div>
+  if (!entity) return <div className="p-6 text-center text-stone-500">Entity not found.</div>
 
   const isOwner = user?.id === entity.createdBy
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-20 sm:pb-6">
-      <Link to={`/topics/${entity.topicId}`} className="text-sm text-indigo-600">&larr; Back to topic</Link>
+      <Link to={`/topics/${entity.topicId}`} className="text-sm font-semibold text-fuchsia-600">&larr; Back to topic</Link>
 
       <ErrorBanner message={error} />
 
-      <div className="flex items-start justify-between mt-2">
+      <div className="flex items-start justify-between mt-2 gap-3">
         <div>
-          <h1 className="text-xl font-bold">{entity.name}</h1>
-          {entity.description && <p className="text-slate-500 text-sm mt-1">{entity.description}</p>}
+          <h1 className="text-2xl font-display font-bold">{entity.name}</h1>
+          {entity.description && <p className="text-stone-500 text-sm mt-1">{entity.description}</p>}
           {entity.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               {entity.tags.map((t) => (
-                <span key={t} className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600">{t}</span>
+                <span key={t} className="pill-tag">{t}</span>
               ))}
             </div>
           )}
-          <div className="text-xs text-slate-400 mt-2">Added by {entity.createdByName}</div>
+          <div className="text-xs text-stone-400 mt-2">Added by {entity.createdByName}</div>
         </div>
-        <div className="text-right shrink-0 ml-4">
-          <div className="text-2xl font-bold text-indigo-600">{entity.ratingCount > 0 ? entity.avgRating.toFixed(1) : '—'}</div>
-          <div className="text-xs text-slate-400">{entity.ratingCount} rating{entity.ratingCount === 1 ? '' : 's'}</div>
+        <div className="flex flex-col items-center gap-1 shrink-0">
+          <div className="score-badge text-lg w-14 h-14">{entity.ratingCount > 0 ? entity.avgRating.toFixed(1) : '—'}</div>
+          <div className="text-xs text-stone-400">{entity.ratingCount} rating{entity.ratingCount === 1 ? '' : 's'}</div>
         </div>
       </div>
 
       {isOwner && (
-        <div className="mt-3">
-          <button onClick={() => setEditing((v) => !v)} className="text-sm text-indigo-600 mr-4">
+        <div className="mt-3 flex gap-4">
+          <button onClick={() => setEditing((v) => !v)} className="btn-link">
             {editing ? 'Cancel edit' : 'Edit'}
           </button>
-          <button onClick={handleDelete} className="text-sm text-red-600">Delete</button>
+          <button onClick={handleDelete} className="btn-danger-link">Delete</button>
         </div>
       )}
 
       {editing && (
-        <form onSubmit={handleEdit} className="bg-white border border-slate-200 rounded-lg p-4 mt-3 space-y-3">
-          <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full rounded-md border border-slate-300 px-3 py-2" />
-          <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="Description" className="w-full rounded-md border border-slate-300 px-3 py-2" />
-          <input value={editTags} onChange={(e) => setEditTags(e.target.value)} placeholder="Tags, comma separated" className="w-full rounded-md border border-slate-300 px-3 py-2" />
-          <button type="submit" className="bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-indigo-700">Save</button>
+        <form onSubmit={handleEdit} className="card mt-3 space-y-3">
+          <input value={editName} onChange={(e) => setEditName(e.target.value)} className="input-field" />
+          <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="Description" className="input-field" />
+          <input value={editTags} onChange={(e) => setEditTags(e.target.value)} placeholder="Tags, comma separated" className="input-field" />
+          <button type="submit" className="btn-primary">Save</button>
         </form>
       )}
 
-      <div className="bg-white border border-slate-200 rounded-lg p-4 mt-6">
-        <h2 className="font-semibold mb-3">Your rating</h2>
+      <div className="card mt-6">
+        <h2 className="font-display font-bold mb-3">Your rating</h2>
         <form onSubmit={handleRate} className="space-y-3">
           <ScoreInput value={score} onChange={setScore} />
           <textarea
             placeholder="Add a short note (optional)"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="input-field text-sm"
             rows={2}
           />
-          <div className="flex gap-3">
-            <button type="submit" disabled={savingRating} className="bg-indigo-600 text-white text-sm font-medium px-3 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50">
+          <div className="flex items-center gap-4">
+            <button type="submit" disabled={savingRating} className="btn-primary">
               {savingRating ? 'Saving…' : 'Save rating'}
             </button>
             {entity.ratings.some((r) => r.userId === user?.id) && (
-              <button type="button" onClick={handleRemoveRating} className="text-sm text-red-600">Remove my rating</button>
+              <button type="button" onClick={handleRemoveRating} className="btn-danger-link">Remove my rating</button>
             )}
           </div>
         </form>
       </div>
 
       <div className="mt-6">
-        <h2 className="font-semibold mb-3">All ratings ({entity.ratingCount})</h2>
+        <h2 className="font-display font-bold mb-3">All ratings ({entity.ratingCount})</h2>
         {entity.ratings.length === 0 ? (
-          <p className="text-slate-500 text-sm">No one has rated this yet.</p>
+          <p className="text-stone-500 text-sm">No one has rated this yet.</p>
         ) : (
           <ul className="space-y-2">
             {entity.ratings
               .slice()
               .sort((a, b) => b.score - a.score)
               .map((r) => (
-                <li key={r.userId} className="bg-white border border-slate-200 rounded-lg p-3">
+                <li key={r.userId} className="card py-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm">{r.userName}</span>
-                    <span className="font-bold text-indigo-600">{r.score}/10</span>
+                    <span className="font-semibold text-sm">{r.userName}</span>
+                    <span className="font-display font-bold text-fuchsia-600">{r.score}/10</span>
                   </div>
-                  {r.comment && <p className="text-sm text-slate-500 mt-1">{r.comment}</p>}
+                  {r.comment && <p className="text-sm text-stone-500 mt-1">{r.comment}</p>}
                 </li>
               ))}
           </ul>

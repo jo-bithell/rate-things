@@ -27,41 +27,37 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-amber-50 px-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center text-indigo-600 mb-6">RateThings</h1>
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 space-y-4">
+        <h1 className="text-3xl font-display font-bold text-center text-fuchsia-600 mb-6">⭐ RateThings</h1>
+        <form onSubmit={handleSubmit} className="card space-y-4">
           <ErrorBanner message={error} />
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <label className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="input-field"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <label className="block text-sm font-semibold text-stone-700 mb-1">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="input-field"
             />
           </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-indigo-600 text-white rounded-md py-2 font-medium hover:bg-indigo-700 disabled:opacity-50"
-          >
+          <button type="submit" disabled={submitting} className="btn-primary w-full">
             {submitting ? 'Logging in…' : 'Log in'}
           </button>
         </form>
-        <p className="text-center text-sm text-slate-500 mt-4">
-          No account? <Link to="/register" className="text-indigo-600 font-medium">Register</Link>
+        <p className="text-center text-sm text-stone-500 mt-4">
+          No account? <Link to="/register" className="text-fuchsia-600 font-semibold">Register</Link>
         </p>
       </div>
     </div>

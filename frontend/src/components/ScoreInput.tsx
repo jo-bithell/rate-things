@@ -7,16 +7,16 @@ interface Props {
 export default function ScoreInput({ value, onChange }: Props) {
   const scores = Array.from({ length: 11 }, (_, i) => i)
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap gap-1.5">
       {scores.map((s) => (
         <button
           key={s}
           type="button"
           onClick={() => onChange(s)}
-          className={`w-9 h-9 rounded-md text-sm font-semibold border ${
+          className={`w-9 h-9 rounded-full text-sm font-bold border-2 transition-all ${
             s === value
-              ? 'bg-indigo-600 text-white border-indigo-600'
-              : 'bg-white text-slate-600 border-slate-300 hover:border-indigo-400'
+              ? 'bg-fuchsia-500 text-white border-stone-900 shadow-pop-sm -translate-y-0.5'
+              : 'bg-white text-stone-500 border-stone-300 hover:border-fuchsia-400 hover:text-fuchsia-600'
           }`}
         >
           {s}

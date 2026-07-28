@@ -28,52 +28,48 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-amber-50 px-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center text-indigo-600 mb-6">RateThings</h1>
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 space-y-4">
+        <h1 className="text-3xl font-display font-bold text-center text-fuchsia-600 mb-6">⭐ RateThings</h1>
+        <form onSubmit={handleSubmit} className="card space-y-4">
           <ErrorBanner message={error} />
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Display name</label>
+            <label className="block text-sm font-semibold text-stone-700 mb-1">Display name</label>
             <input
               required
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="input-field"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <label className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="input-field"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <label className="block text-sm font-semibold text-stone-700 mb-1">Password</label>
             <input
               type="password"
               required
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="input-field"
             />
-            <p className="text-xs text-slate-400 mt-1">At least 8 characters.</p>
+            <p className="text-xs text-stone-400 mt-1">At least 8 characters.</p>
           </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-indigo-600 text-white rounded-md py-2 font-medium hover:bg-indigo-700 disabled:opacity-50"
-          >
+          <button type="submit" disabled={submitting} className="btn-primary w-full">
             {submitting ? 'Creating account…' : 'Create account'}
           </button>
         </form>
-        <p className="text-center text-sm text-slate-500 mt-4">
-          Already have an account? <Link to="/login" className="text-indigo-600 font-medium">Log in</Link>
+        <p className="text-center text-sm text-stone-500 mt-4">
+          Already have an account? <Link to="/login" className="text-fuchsia-600 font-semibold">Log in</Link>
         </p>
       </div>
     </div>
