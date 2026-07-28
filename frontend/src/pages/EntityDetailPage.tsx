@@ -230,8 +230,15 @@ export default function EntityDetailPage() {
               .map((r) => (
                 <li key={r.userId} className="card py-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm">{r.userName}</span>
-                    <span className="font-display font-bold text-fuchsia-600">{r.score}/10</span>
+                    <span className="flex items-center gap-2 min-w-0">
+                      <img
+                        src={r.userImageUrl || '/default-avatar.svg'}
+                        alt=""
+                        className="w-6 h-6 rounded-full border border-stone-900 object-cover shrink-0"
+                      />
+                      <span className="font-semibold text-sm truncate">{r.userName}</span>
+                    </span>
+                    <span className="font-display font-bold text-fuchsia-600 shrink-0">{r.score}/10</span>
                   </div>
                   {r.comment && <p className="text-sm text-stone-500 mt-1">{r.comment}</p>}
                 </li>

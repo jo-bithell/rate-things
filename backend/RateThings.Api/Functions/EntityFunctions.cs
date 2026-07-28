@@ -242,5 +242,5 @@ public class EntityFunctions
         e.Id, e.TopicId, e.Name, e.Description, e.Tags, e.ImageUrl,
         e.CreatedBy, e.CreatedByName, e.CreatedAt, e.UpdatedAt,
         e.AvgRating, e.RatingCount,
-        e.Ratings.Select(r => new RatingDto(r.UserId, r.UserName, r.Score, r.Comment, r.CreatedAt, r.UpdatedAt)).ToList());
+        e.Ratings.Select(r => new RatingDto(r.UserId, r.UserName, r.UserImageUrl, r.Score, r.Comment, r.CreatedAt, r.UpdatedAt)).ToList());
 }

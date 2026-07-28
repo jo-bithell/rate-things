@@ -19,6 +19,7 @@ export interface Topic {
 export interface Rating {
   userId: string
   userName: string
+  userImageUrl?: string
   score: number
   comment?: string
   createdAt: string

@@ -1,6 +1,6 @@
 namespace RateThings.Api.Dto;
 
-public record RatingDto(string UserId, string UserName, int Score, string? Comment, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);
+public record RatingDto(string UserId, string UserName, string? UserImageUrl, int Score, string? Comment, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);
 
 public record EntityDto(
     string Id,

@@ -11,8 +11,13 @@ namespace RateThings.Api.Functions;
 public class RatingFunctions
 {
     private readonly IEntityRepository _entities;
+    private readonly IUserRepository _users;
 
-    public RatingFunctions(IEntityRepository entities) => _entities = entities;
+    public RatingFunctions(IEntityRepository entities, IUserRepository users)
+    {
+        _entities = entities;
+        _users = users;
+    }
 
     [Function("UpsertRating")]
     public async Task<IActionResult> UpsertRating(
@@ -37,11 +42,14 @@ public class RatingFunctions
             return HttpResponseExtensions.NotFoundProblem("Entity not found.");
         }
 
+        var user = await _users.GetByIdAsync(userId);
+
         var existing = entity.Ratings.FirstOrDefault(r => r.UserId == userId);
         if (existing is not null)
         {
             existing.Score = body.Score;
             existing.Comment = body.Comment?.Trim();
+            existing.UserImageUrl = user?.ImageUrl;
             existing.UpdatedAt = DateTimeOffset.UtcNow;
         }
         else
@@ -50,6 +58,7 @@ public class RatingFunctions
             {
                 UserId = userId,
                 UserName = userName,
+                UserImageUrl = user?.ImageUrl,
                 Score = body.Score,
                 Comment = body.Comment?.Trim(),
             });
