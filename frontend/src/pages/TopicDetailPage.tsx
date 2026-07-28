@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import type { Entity, ListSummary, Topic } from '../types'
@@ -10,8 +10,13 @@ type Tab = 'entities' | 'lists'
 export default function TopicDetailPage() {
   const { topicId } = useParams<{ topicId: string }>()
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [topic, setTopic] = useState<Topic | null>(null)
   const [tab, setTab] = useState<Tab>('entities')
+
+  const [editingTopic, setEditingTopic] = useState(false)
+  const [editTopicName, setEditTopicName] = useState('')
+  const [editTopicDescription, setEditTopicDescription] = useState('')
 
   const [entities, setEntities] = useState<Entity[]>([])
   const [tags, setTags] = useState<string[]>([])
@@ -53,6 +58,13 @@ export default function TopicDetailPage() {
       .finally(() => setLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicId])
+
+  useEffect(() => {
+    if (topic) {
+      setEditTopicName(topic.name)
+      setEditTopicDescription(topic.description ?? '')
+    }
+  }, [topic])
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault()
@@ -100,14 +112,59 @@ export default function TopicDetailPage() {
     }
   }
 
+  const handleEditTopic = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!topicId || !editTopicName.trim()) return
+    setError(null)
+    try {
+      const updated = await api.updateTopic(topicId, editTopicName.trim(), editTopicDescription.trim() || undefined)
+      setTopic(updated)
+      setEditingTopic(false)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to update topic.')
+    }
+  }
+
+  const handleDeleteTopic = async () => {
+    if (!topicId || !topic) return
+    if (!confirm(`Delete "${topic.name}"? This removes the topic but not its entities or lists.`)) return
+    try {
+      await api.deleteTopic(topicId)
+      navigate('/topics')
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to delete topic.')
+    }
+  }
+
   if (loading) return <div className="p-6 text-center text-stone-500">Loading…</div>
   if (!topic) return <div className="p-6 text-center text-stone-500">Topic not found.</div>
+
+  const isOwner = user?.id === topic.createdBy
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 pb-20 sm:pb-6">
       <Link to="/topics" className="text-sm font-semibold text-fuchsia-600">&larr; All topics</Link>
-      <h1 className="text-2xl font-display font-bold mt-2">{topic.name}</h1>
-      {topic.description && <p className="text-stone-500 text-sm mt-1">{topic.description}</p>}
+
+      <div className="flex items-start justify-between mt-2 gap-3">
+        <div>
+          <h1 className="text-2xl font-display font-bold">{topic.name}</h1>
+          {topic.description && <p className="text-stone-500 text-sm mt-1">{topic.description}</p>}
+        </div>
+        {isOwner && (
+          <div className="text-sm shrink-0 flex gap-3">
+            <button onClick={() => setEditingTopic((v) => !v)} className="btn-link">{editingTopic ? 'Cancel' : 'Edit'}</button>
+            <button onClick={handleDeleteTopic} className="btn-danger-link">Delete</button>
+          </div>
+        )}
+      </div>
+
+      {editingTopic && (
+        <form onSubmit={handleEditTopic} className="card mt-3 space-y-3">
+          <input value={editTopicName} onChange={(e) => setEditTopicName(e.target.value)} className="input-field" />
+          <input value={editTopicDescription} onChange={(e) => setEditTopicDescription(e.target.value)} placeholder="Description" className="input-field" />
+          <button type="submit" className="btn-primary">Save</button>
+        </form>
+      )}
 
       <ErrorBanner message={error} />
 
