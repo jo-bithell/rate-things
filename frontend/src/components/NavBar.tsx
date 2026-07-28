@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
-  `px-3 py-2 rounded-full text-sm font-semibold border-2 transition-colors ${
+  `h-9 px-3 inline-flex items-center gap-1.5 rounded-full text-sm font-semibold border-2 transition-colors ${
     isActive
       ? 'bg-fuchsia-500 text-white border-stone-900'
       : 'text-stone-600 border-transparent hover:border-stone-900 hover:bg-amber-100'
@@ -26,16 +26,12 @@ export default function NavBar() {
           <nav className="hidden sm:flex items-center gap-2">
             <NavLink to="/topics" className={linkClass}>Topics</NavLink>
             <NavLink to="/account" className={linkClass}>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-5 h-5 shrink-0 rounded-full overflow-hidden">
-                  {user.imageUrl && (
-                    <img src={user.imageUrl} alt="" className="w-full h-full rounded-full border border-stone-900 object-cover" />
-                  )}
-                </span>
-                Account
-              </span>
+              {user.imageUrl && (
+                <img src={user.imageUrl} alt="" className="w-5 h-5 rounded-full border border-stone-900 object-cover" />
+              )}
+              Account
             </NavLink>
-            <button onClick={logout} className="px-3 py-2 rounded-full text-sm font-semibold text-stone-600 hover:bg-amber-100 border-2 border-transparent hover:border-stone-900 transition-colors">
+            <button onClick={logout} className="h-9 px-3 inline-flex items-center rounded-full text-sm font-semibold text-stone-600 hover:bg-amber-100 border-2 border-transparent hover:border-stone-900 transition-colors">
               Log out
             </button>
           </nav>
