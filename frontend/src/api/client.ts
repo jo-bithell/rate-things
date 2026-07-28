@@ -54,6 +54,23 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
 
+  getMe: () => request<User>('/users/me'),
+
+  updateProfile: (email: string, displayName: string) =>
+    request<{ token: string; user: User }>('/users/me', {
+      method: 'PUT',
+      body: JSON.stringify({ email, displayName }),
+    }),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<{ message: string }>('/users/me/password', {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+
+  deleteAccount: (password: string) =>
+    request<void>('/users/me', { method: 'DELETE', body: JSON.stringify({ password }) }),
+
   getTopics: (search?: string) =>
     request<Topic[]>(`/topics${search ? `?search=${encodeURIComponent(search)}` : ''}`),
 

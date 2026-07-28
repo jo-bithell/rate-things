@@ -25,6 +25,7 @@ export default function NavBar() {
           </NavLink>
           <nav className="hidden sm:flex items-center gap-2">
             <NavLink to="/topics" className={linkClass}>Topics</NavLink>
+            <NavLink to="/account" className={linkClass}>Account</NavLink>
             <span className="text-sm text-stone-500 px-2">Hey, {user.displayName}!</span>
             <button onClick={logout} className="px-3 py-2 rounded-full text-sm font-semibold text-stone-600 hover:bg-amber-100 border-2 border-transparent hover:border-stone-900 transition-colors">
               Log out
@@ -36,6 +37,7 @@ export default function NavBar() {
       {/* Bottom tab bar: mobile only */}
       <nav className="sm:hidden fixed bottom-0 inset-x-0 z-10 bg-amber-50 border-t-2 border-stone-900 flex">
         <NavLink to="/topics" className={mobileLinkClass}>Topics</NavLink>
+        <NavLink to="/account" className={mobileLinkClass}>Account</NavLink>
         <button onClick={logout} className="flex-1 text-center py-2 text-xs font-bold text-stone-500">
           Log out
         </button>

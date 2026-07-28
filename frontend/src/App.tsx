@@ -7,6 +7,7 @@ import TopicsPage from './pages/TopicsPage'
 import TopicDetailPage from './pages/TopicDetailPage'
 import EntityDetailPage from './pages/EntityDetailPage'
 import ListDetailPage from './pages/ListDetailPage'
+import AccountPage from './pages/AccountPage'
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/topics/:topicId" element={<TopicDetailPage />} />
           <Route path="/entities/:entityId" element={<EntityDetailPage />} />
           <Route path="/lists/:listId" element={<ListDetailPage />} />
+          <Route path="/account" element={<AccountPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/topics" replace />} />

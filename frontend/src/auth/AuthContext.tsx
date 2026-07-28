@@ -7,6 +7,9 @@ interface AuthContextValue {
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, displayName: string) => Promise<void>
+  updateProfile: (email: string, displayName: string) => Promise<void>
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
+  deleteAccount: (password: string) => Promise<void>
   logout: () => void
 }
 
@@ -43,6 +46,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     persist(token, user)
   }
 
+  const updateProfile = async (email: string, displayName: string) => {
+    const { token, user } = await api.updateProfile(email, displayName)
+    persist(token, user)
+  }
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    await api.changePassword(currentPassword, newPassword)
+  }
+
+  const deleteAccount = async (password: string) => {
+    await api.deleteAccount(password)
+    logout()
+  }
+
   const logout = () => {
     setToken(null)
     localStorage.removeItem(USER_KEY)
@@ -50,7 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, updateProfile, changePassword, deleteAccount, logout }}
+    >
       {children}
     </AuthContext.Provider>
   )

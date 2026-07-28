@@ -44,4 +44,14 @@ public class UserRepository : IUserRepository
         var response = await _container.CreateItemAsync(user, new PartitionKey(user.Id));
         return response.Resource;
     }
+
+    public async Task<UserDocument> UpdateAsync(UserDocument user)
+    {
+        user.Email = user.Email.Trim().ToLowerInvariant();
+        var response = await _container.ReplaceItemAsync(user, user.Id, new PartitionKey(user.Id));
+        return response.Resource;
+    }
+
+    public Task DeleteAsync(string id) =>
+        _container.DeleteItemAsync<UserDocument>(id, new PartitionKey(id));
 }

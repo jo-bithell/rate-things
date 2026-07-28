@@ -7,4 +7,6 @@ public interface IUserRepository
     Task<UserDocument?> GetByEmailAsync(string email);
     Task<UserDocument?> GetByIdAsync(string id);
     Task<UserDocument> CreateAsync(UserDocument user);
+    Task<UserDocument> UpdateAsync(UserDocument user);
+    Task DeleteAsync(string id);
 }
