@@ -4,6 +4,7 @@ import { api, ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import type { Entity, ListSummary } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function ListDetailPage() {
   const { listId } = useParams<{ listId: string }>()
@@ -119,7 +120,7 @@ export default function ListDetailPage() {
     }
   }
 
-  if (loading) return <div className="p-6 text-center text-stone-500">Loading…</div>
+  if (loading) return <LoadingSpinner />
   if (!list) return <div className="p-6 text-center text-stone-500">List not found.</div>
 
   const candidateEntities = Object.values(entitiesById)

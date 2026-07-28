@@ -4,6 +4,7 @@ import { api, ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import type { Entity, ListSummary, Topic } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 type Tab = 'entities' | 'lists'
 
@@ -148,7 +149,7 @@ export default function TopicDetailPage() {
     }
   }
 
-  if (loading) return <div className="p-6 text-center text-stone-500">Loading…</div>
+  if (loading) return <LoadingSpinner />
   if (!topic) return <div className="p-6 text-center text-stone-500">Topic not found.</div>
 
   const isOwner = user?.id === topic.createdBy

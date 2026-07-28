@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import type { Entity } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
 import ScoreInput from '../components/ScoreInput'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function EntityDetailPage() {
   const { entityId } = useParams<{ entityId: string }>()
@@ -120,7 +121,7 @@ export default function EntityDetailPage() {
     }
   }
 
-  if (loading) return <div className="p-6 text-center text-stone-500">Loading…</div>
+  if (loading) return <LoadingSpinner />
   if (!entity) return <div className="p-6 text-center text-stone-500">Entity not found.</div>
 
   const isOwner = user?.id === entity.createdBy

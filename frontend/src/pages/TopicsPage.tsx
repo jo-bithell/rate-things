@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
 import type { Topic } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function TopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([])
@@ -94,7 +95,7 @@ export default function TopicsPage() {
       </form>
 
       {loading ? (
-        <p className="text-stone-500 text-sm">Loading…</p>
+        <LoadingSpinner />
       ) : topics.length === 0 ? (
         <p className="text-stone-500 text-sm">No topics yet. Create the first one.</p>
       ) : (
