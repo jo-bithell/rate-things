@@ -55,7 +55,7 @@ export default function TopicsPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 pb-20 sm:pb-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-display font-bold">Topics 🎉</h1>
+        <h1 className="text-2xl font-display font-bold">Topics</h1>
         <button onClick={() => setShowCreate((v) => !v)} className="btn-primary">
           {showCreate ? 'Cancel' : '+ New topic'}
         </button>

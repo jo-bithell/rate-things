@@ -19,7 +19,7 @@ export default function MyListsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 pb-20 sm:pb-6">
-      <h1 className="text-2xl font-display font-bold mb-4">My Lists 📋</h1>
+      <h1 className="text-2xl font-display font-bold mb-4">My Lists</h1>
       <ErrorBanner message={error} />
       {loading ? (
         <p className="text-stone-500 text-sm">Loading…</p>
