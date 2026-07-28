@@ -42,14 +42,11 @@ public class RatingFunctions
             return HttpResponseExtensions.NotFoundProblem("Entity not found.");
         }
 
-        var user = await _users.GetByIdAsync(userId);
-
         var existing = entity.Ratings.FirstOrDefault(r => r.UserId == userId);
         if (existing is not null)
         {
             existing.Score = body.Score;
             existing.Comment = body.Comment?.Trim();
-            existing.UserImageUrl = user?.ImageUrl;
             existing.UpdatedAt = DateTimeOffset.UtcNow;
         }
         else
@@ -58,7 +55,6 @@ public class RatingFunctions
             {
                 UserId = userId,
                 UserName = userName,
-                UserImageUrl = user?.ImageUrl,
                 Score = body.Score,
                 Comment = body.Comment?.Trim(),
             });
@@ -67,7 +63,7 @@ public class RatingFunctions
         entity.RecalculateAggregate();
         entity = await _entities.UpdateAsync(entity);
 
-        return new OkObjectResult(EntityFunctions.ToDto(entity));
+        return new OkObjectResult(await EntityFunctions.ToDtoAsync(entity, _users));
     }
 
     [Function("DeleteRating")]
@@ -95,6 +91,6 @@ public class RatingFunctions
         entity.RecalculateAggregate();
         entity = await _entities.UpdateAsync(entity);
 
-        return new OkObjectResult(EntityFunctions.ToDto(entity));
+        return new OkObjectResult(await EntityFunctions.ToDtoAsync(entity, _users));
     }
 }

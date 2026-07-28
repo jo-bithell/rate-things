@@ -4,7 +4,6 @@ public class RatingEntry
 {
     public string UserId { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
-    public string? UserImageUrl { get; set; }
 
     /// <summary>Score from 0 to 10, inclusive.</summary>
     public int Score { get; set; }

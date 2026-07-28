@@ -14,12 +14,14 @@ public class EntityFunctions
     private readonly IEntityRepository _entities;
     private readonly ITopicRepository _topics;
     private readonly IImageStorageService _images;
+    private readonly IUserRepository _users;
 
-    public EntityFunctions(IEntityRepository entities, ITopicRepository topics, IImageStorageService images)
+    public EntityFunctions(IEntityRepository entities, ITopicRepository topics, IImageStorageService images, IUserRepository users)
     {
         _entities = entities;
         _topics = topics;
         _images = images;
+        _users = users;
     }
 
     [Function("GetEntities")]
@@ -29,7 +31,7 @@ public class EntityFunctions
         var search = req.Query["search"].FirstOrDefault();
         var tag = req.Query["tag"].FirstOrDefault();
         var entities = await _entities.SearchAsync(topicId, search, tag);
-        return new OkObjectResult(entities.Select(ToDto));
+        return new OkObjectResult(await Task.WhenAll(entities.Select(e => ToDtoAsync(e, _users))));
     }
 
     [Function("GetEntityById")]
@@ -42,7 +44,7 @@ public class EntityFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        return new OkObjectResult(ToDto(entity));
+        return new OkObjectResult(await ToDtoAsync(entity, _users));
     }
 
     [Function("GetEntityTags")]
@@ -94,7 +96,7 @@ public class EntityFunctions
         };
 
         entity = await _entities.CreateAsync(entity);
-        return new ObjectResult(ToDto(entity)) { StatusCode = StatusCodes.Status201Created };
+        return new ObjectResult(await ToDtoAsync(entity, _users)) { StatusCode = StatusCodes.Status201Created };
     }
 
     [Function("UpdateEntity")]
@@ -135,7 +137,7 @@ public class EntityFunctions
         entity.Tags = NormalizeTags(body.Tags);
         entity = await _entities.UpdateAsync(entity);
 
-        return new OkObjectResult(ToDto(entity));
+        return new OkObjectResult(await ToDtoAsync(entity, _users));
     }
 
     [Function("DeleteEntity")]
@@ -199,7 +201,7 @@ public class EntityFunctions
         entity.ImageUrl = url;
         entity = await _entities.UpdateAsync(entity);
 
-        return new OkObjectResult(ToDto(entity));
+        return new OkObjectResult(await ToDtoAsync(entity, _users));
     }
 
     [Function("DeleteEntityImage")]
@@ -227,7 +229,7 @@ public class EntityFunctions
         entity.ImageUrl = null;
         entity = await _entities.UpdateAsync(entity);
 
-        return new OkObjectResult(ToDto(entity));
+        return new OkObjectResult(await ToDtoAsync(entity, _users));
     }
 
     private static List<string> NormalizeTags(List<string>? tags) =>
@@ -238,9 +240,24 @@ public class EntityFunctions
             .OrderBy(t => t)
             .ToList();
 
-    internal static EntityDto ToDto(EntityDocument e) => new(
-        e.Id, e.TopicId, e.Name, e.Description, e.Tags, e.ImageUrl,
-        e.CreatedBy, e.CreatedByName, e.CreatedAt, e.UpdatedAt,
-        e.AvgRating, e.RatingCount,
-        e.Ratings.Select(r => new RatingDto(r.UserId, r.UserName, r.UserImageUrl, r.Score, r.Comment, r.CreatedAt, r.UpdatedAt)).ToList());
+    /// <summary>
+    /// Resolves each rater's *current* profile picture rather than freezing it at rating
+    /// time - unlike a stale display name, a stale avatar reads as actively wrong.
+    /// </summary>
+    internal static async Task<EntityDto> ToDtoAsync(EntityDocument e, IUserRepository users)
+    {
+        var raterIds = e.Ratings.Select(r => r.UserId).Distinct().ToList();
+        var raters = await Task.WhenAll(raterIds.Select(id => users.GetByIdAsync(id)));
+        var imageByUserId = raterIds
+            .Zip(raters, (id, user) => (id, imageUrl: user?.ImageUrl))
+            .ToDictionary(x => x.id, x => x.imageUrl);
+
+        return new(
+            e.Id, e.TopicId, e.Name, e.Description, e.Tags, e.ImageUrl,
+            e.CreatedBy, e.CreatedByName, e.CreatedAt, e.UpdatedAt,
+            e.AvgRating, e.RatingCount,
+            e.Ratings.Select(r => new RatingDto(
+                r.UserId, r.UserName, imageByUserId.GetValueOrDefault(r.UserId),
+                r.Score, r.Comment, r.CreatedAt, r.UpdatedAt)).ToList());
+    }
 }
