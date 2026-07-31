@@ -148,7 +148,7 @@ export const api = {
 
   deleteEntityImage: (id: string) => request<Entity>(`/entities/${id}/image`, { method: 'DELETE' }),
 
-  upsertRating: (entityId: string, score: number, comment?: string) =>
+  upsertRating: (entityId: string, score: number | null, comment?: string) =>
     request<Entity>(`/entities/${entityId}/rating`, {
       method: 'PUT',
       body: JSON.stringify({ score, comment }),

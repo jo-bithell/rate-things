@@ -20,7 +20,7 @@ export interface Rating {
   userId: string
   userName: string
   userImageUrl?: string
-  score: number
+  score: number | null
   comment?: string
   createdAt: string
   updatedAt: string

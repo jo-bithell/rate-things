@@ -5,8 +5,8 @@ public class RatingEntry
     public string UserId { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
 
-    /// <summary>Score from 0 to 10, inclusive.</summary>
-    public int Score { get; set; }
+    /// <summary>Score from 0 to 10, inclusive. Null means this is a comment-only entry with no rating.</summary>
+    public int? Score { get; set; }
 
     public string? Comment { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
@@ -34,7 +34,9 @@ public class EntityDocument
 
     public void RecalculateAggregate()
     {
-        RatingCount = Ratings.Count;
-        AvgRating = RatingCount == 0 ? 0 : Math.Round(Ratings.Average(r => r.Score), 2);
+        // Comment-only entries (Score is null) don't count as a rating for these purposes.
+        var scored = Ratings.Where(r => r.Score.HasValue).ToList();
+        RatingCount = scored.Count;
+        AvgRating = RatingCount == 0 ? 0 : Math.Round(scored.Average(r => r.Score!.Value), 2);
     }
 }

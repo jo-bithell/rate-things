@@ -17,7 +17,7 @@ export default function EntityDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [score, setScore] = useState(5)
+  const [score, setScore] = useState<number | null>(null)
   const [comment, setComment] = useState('')
   const [savingRating, setSavingRating] = useState(false)
 
@@ -61,7 +61,11 @@ export default function EntityDetailPage() {
 
   const handleRate = async (e: FormEvent) => {
     e.preventDefault()
-    if (!entityId) return
+    if (!entityId || savingRating) return
+    if (score === null && !comment.trim()) {
+      setError('Give a score, a comment, or both.')
+      return
+    }
     setSavingRating(true)
     setError(null)
     try {
@@ -80,7 +84,7 @@ export default function EntityDetailPage() {
     try {
       const updated = await api.deleteRating(entityId)
       setEntity(updated)
-      setScore(5)
+      setScore(null)
       setComment('')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to remove rating.')
@@ -195,11 +199,11 @@ export default function EntityDetailPage() {
       )}
 
       <div className="card mt-6">
-        <h2 className="font-display font-bold mb-3">Your rating</h2>
+        <h2 className="font-display font-bold mb-3">Your rating or comment</h2>
         <form onSubmit={handleRate} className="space-y-3">
           <ScoreInput value={score} onChange={setScore} />
           <textarea
-            placeholder="Add a short note (optional)"
+            placeholder={score === null ? 'Add a comment (a score is optional)' : 'Add a short note (optional)'}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             className="input-field text-sm"
@@ -207,11 +211,11 @@ export default function EntityDetailPage() {
           />
           <div className="flex items-center gap-4">
             <button type="submit" disabled={savingRating} className="btn-primary">
-              {savingRating ? 'Saving…' : 'Save rating'}
+              {savingRating ? 'Saving…' : score === null ? 'Save comment' : 'Save rating'}
             </button>
             {entity.ratings.some((r) => r.userId === user?.id) && (
               <button type="button" onClick={handleRemoveRating} disabled={removingRating} className="btn-danger-link disabled:opacity-50">
-                {removingRating ? 'Removing…' : 'Remove my rating'}
+                {removingRating ? 'Removing…' : 'Remove mine'}
               </button>
             )}
           </div>
@@ -219,14 +223,14 @@ export default function EntityDetailPage() {
       </div>
 
       <div className="mt-6">
-        <h2 className="font-display font-bold mb-3">All ratings ({entity.ratingCount})</h2>
+        <h2 className="font-display font-bold mb-3">Ratings &amp; comments ({entity.ratings.length})</h2>
         {entity.ratings.length === 0 ? (
-          <p className="text-stone-500 text-sm">No one has rated this yet.</p>
+          <p className="text-stone-500 text-sm">No ratings or comments yet.</p>
         ) : (
           <ul className="space-y-2">
             {entity.ratings
               .slice()
-              .sort((a, b) => b.score - a.score)
+              .sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
               .map((r) => (
                 <li key={r.userId} className="card py-3">
                   <div className="flex items-center justify-between">
@@ -238,7 +242,9 @@ export default function EntityDetailPage() {
                       />
                       <span className="font-semibold text-sm truncate">{r.userName}</span>
                     </span>
-                    <span className="font-display font-bold text-fuchsia-600 shrink-0">{r.score}/10</span>
+                    {r.score !== null && (
+                      <span className="font-display font-bold text-fuchsia-600 shrink-0">{r.score}/10</span>
+                    )}
                   </div>
                   {r.comment && <p className="text-sm text-stone-500 mt-1">{r.comment}</p>}
                 </li>

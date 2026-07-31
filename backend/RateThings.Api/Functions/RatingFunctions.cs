@@ -31,9 +31,19 @@ public class RatingFunctions
         }
 
         var body = await req.ReadFromJsonAsync<UpsertRatingRequest>();
-        if (body is null || body.Score is < 0 or > 10)
+        if (body is null)
+        {
+            return HttpResponseExtensions.BadRequestProblem("Score and/or comment are required.");
+        }
+
+        if (body.Score is < 0 or > 10)
         {
             return HttpResponseExtensions.BadRequestProblem("Score must be between 0 and 10.");
+        }
+
+        if (body.Score is null && string.IsNullOrWhiteSpace(body.Comment))
+        {
+            return HttpResponseExtensions.BadRequestProblem("Provide a score, a comment, or both.");
         }
 
         var entity = await _entities.GetByIdAsync(id);
