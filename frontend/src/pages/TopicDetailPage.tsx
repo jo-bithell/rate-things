@@ -201,7 +201,11 @@ export default function TopicDetailPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-display font-bold">{topic.name}</h1>
-            {topic.isPrivate && <span className="pill-tag shrink-0">🔒 Private</span>}
+            {topic.isPrivate ? (
+              <span className="pill-tag shrink-0">🔒 Private</span>
+            ) : (
+              <span className="pill-tag shrink-0">👥 Friends only</span>
+            )}
           </div>
           {topic.description && <p className="text-stone-500 text-sm mt-1">{topic.description}</p>}
         </div>
@@ -229,15 +233,20 @@ export default function TopicDetailPage() {
         <form onSubmit={handleEditTopic} className="card mt-3 space-y-3">
           <input value={editTopicName} onChange={(e) => setEditTopicName(e.target.value)} className="input-field" />
           <input value={editTopicDescription} onChange={(e) => setEditTopicDescription(e.target.value)} placeholder="Description" className="input-field" />
-          <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
-            <input
-              type="checkbox"
-              checked={editTopicIsPrivate}
-              onChange={(e) => setEditTopicIsPrivate(e.target.checked)}
-              className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500"
-            />
-            Private (only you can see this topic)
-          </label>
+          <div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
+              <input
+                type="checkbox"
+                checked={editTopicIsPrivate}
+                onChange={(e) => setEditTopicIsPrivate(e.target.checked)}
+                className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500"
+              />
+              Private (only you)
+            </label>
+            <p className="text-xs text-stone-400 mt-1 ml-6">
+              Unchecked topics are visible to your friends. Check this to keep it just for you.
+            </p>
+          </div>
           <button type="submit" disabled={savingTopic} className="btn-primary">{savingTopic ? 'Saving…' : 'Save'}</button>
         </form>
       )}

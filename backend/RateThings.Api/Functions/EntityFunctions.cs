@@ -15,14 +15,19 @@ public class EntityFunctions
     private readonly ITopicRepository _topics;
     private readonly IImageStorageService _images;
     private readonly IUserRepository _users;
+    private readonly IFriendshipRepository _friendships;
 
-    public EntityFunctions(IEntityRepository entities, ITopicRepository topics, IImageStorageService images, IUserRepository users)
+    public EntityFunctions(IEntityRepository entities, ITopicRepository topics, IImageStorageService images, IUserRepository users, IFriendshipRepository friendships)
     {
         _entities = entities;
         _topics = topics;
         _images = images;
         _users = users;
+        _friendships = friendships;
     }
+
+    private Task<HashSet<string>> GetFriendIdsAsync(string? userId) =>
+        userId is null ? Task.FromResult(new HashSet<string>()) : _friendships.GetFriendIdsAsync(userId);
 
     [Function("GetEntities")]
     public async Task<IActionResult> GetEntities(
@@ -30,7 +35,7 @@ public class EntityFunctions
     {
         var userId = req.HttpContext.User.GetUserId();
         var topic = await _topics.GetByIdAsync(topicId);
-        if (topic is null || !topic.IsVisibleTo(userId))
+        if (topic is null || !topic.IsVisibleTo(userId, await GetFriendIdsAsync(userId)))
         {
             return HttpResponseExtensions.NotFoundProblem();
         }
@@ -81,7 +86,7 @@ public class EntityFunctions
         }
 
         var topic = await _topics.GetByIdAsync(topicId);
-        if (topic is null || !topic.IsVisibleTo(userId))
+        if (topic is null || !topic.IsVisibleTo(userId, await GetFriendIdsAsync(userId)))
         {
             return HttpResponseExtensions.NotFoundProblem("Topic not found.");
         }
@@ -249,7 +254,7 @@ public class EntityFunctions
     private async Task<bool> CanAccessTopicAsync(string topicId, string? userId)
     {
         var topic = await _topics.GetByIdAsync(topicId);
-        return topic is not null && topic.IsVisibleTo(userId);
+        return topic is not null && topic.IsVisibleTo(userId, await GetFriendIdsAsync(userId));
     }
 
     private static List<string> NormalizeTags(List<string>? tags) =>

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using RateThings.Api.Common;
 using RateThings.Api.Dto;
+using RateThings.Api.Models;
 using RateThings.Api.Repositories;
 using RateThings.Api.Services;
 
@@ -14,13 +15,15 @@ public class UserFunctions
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtService _jwtService;
     private readonly IImageStorageService _images;
+    private readonly IFriendshipRepository _friendships;
 
-    public UserFunctions(IUserRepository users, IPasswordHasher passwordHasher, IJwtService jwtService, IImageStorageService images)
+    public UserFunctions(IUserRepository users, IPasswordHasher passwordHasher, IJwtService jwtService, IImageStorageService images, IFriendshipRepository friendships)
     {
         _users = users;
         _passwordHasher = passwordHasher;
         _jwtService = jwtService;
         _images = images;
+        _friendships = friendships;
     }
 
     [Function("GetMe")]
@@ -40,6 +43,42 @@ public class UserFunctions
         }
 
         return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl));
+    }
+
+    [Function("SearchUsers")]
+    public async Task<IActionResult> SearchUsers(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users/search")] HttpRequest req)
+    {
+        var userId = req.HttpContext.User.GetUserId();
+        if (userId is null)
+        {
+            return HttpResponseExtensions.UnauthorizedProblem();
+        }
+
+        var q = req.Query["q"].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return new OkObjectResult(Array.Empty<UserSearchResultDto>());
+        }
+
+        var matches = await _users.SearchByDisplayNameAsync(q, excludeUserId: userId);
+        var relationships = await _friendships.GetForUserAsync(userId);
+        var relationshipByOtherUserId = relationships.ToDictionary(f => f.OtherUserId(userId));
+
+        var results = matches.Select(u =>
+        {
+            var status = "none";
+            if (relationshipByOtherUserId.TryGetValue(u.Id, out var f))
+            {
+                status = f.Status == FriendshipStatus.Accepted
+                    ? "friends"
+                    : f.RequesterId == userId ? "pending_outgoing" : "pending_incoming";
+            }
+
+            return new UserSearchResultDto(u.Id, u.DisplayName, u.ImageUrl, status);
+        });
+
+        return new OkObjectResult(results);
     }
 
     [Function("UpdateProfile")]

@@ -7,3 +7,4 @@ public record UserDto(string Id, string Email, string DisplayName, string? Image
 public record UpdateProfileRequest(string Email, string DisplayName);
 public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public record DeleteAccountRequest(string Password);
+public record UserSearchResultDto(string Id, string DisplayName, string? ImageUrl, string RelationshipStatus);

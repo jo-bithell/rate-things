@@ -1,4 +1,4 @@
-import type { Entity, ListSummary, Topic, User } from '../types'
+import type { Entity, FriendsResponse, ListSummary, Topic, User, UserSearchResult } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
 const TOKEN_KEY = 'ratethings_token'
@@ -92,6 +92,21 @@ export const api = {
   },
 
   deleteProfileImage: () => request<User>('/users/me/image', { method: 'DELETE' }),
+
+  searchUsers: (q: string) => request<UserSearchResult[]>(`/users/search?q=${encodeURIComponent(q)}`),
+
+  getFriends: () => request<FriendsResponse>('/friends'),
+
+  sendFriendRequest: (toUserId: string) =>
+    request<FriendsResponse>('/friends/requests', { method: 'POST', body: JSON.stringify({ toUserId }) }),
+
+  acceptFriendRequest: (id: string) => request<FriendsResponse>(`/friends/requests/${id}/accept`, { method: 'POST' }),
+
+  declineFriendRequest: (id: string) => request<FriendsResponse>(`/friends/requests/${id}/decline`, { method: 'POST' }),
+
+  cancelFriendRequest: (id: string) => request<FriendsResponse>(`/friends/requests/${id}`, { method: 'DELETE' }),
+
+  removeFriend: (userId: string) => request<FriendsResponse>(`/friends/${userId}`, { method: 'DELETE' }),
 
   getTopics: (search?: string) =>
     request<Topic[]>(`/topics${search ? `?search=${encodeURIComponent(search)}` : ''}`),

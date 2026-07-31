@@ -13,12 +13,14 @@ public class ListFunctions
     private readonly IListRepository _lists;
     private readonly ITopicRepository _topics;
     private readonly IEntityRepository _entities;
+    private readonly IFriendshipRepository _friendships;
 
-    public ListFunctions(IListRepository lists, ITopicRepository topics, IEntityRepository entities)
+    public ListFunctions(IListRepository lists, ITopicRepository topics, IEntityRepository entities, IFriendshipRepository friendships)
     {
         _lists = lists;
         _topics = topics;
         _entities = entities;
+        _friendships = friendships;
     }
 
     [Function("GetListsByTopic")]
@@ -81,7 +83,7 @@ public class ListFunctions
         }
 
         var topic = await _topics.GetByIdAsync(body.TopicId);
-        if (topic is null || !topic.IsVisibleTo(userId))
+        if (topic is null || !topic.IsVisibleTo(userId, await _friendships.GetFriendIdsAsync(userId)))
         {
             return HttpResponseExtensions.NotFoundProblem("Topic not found.");
         }
@@ -207,7 +209,9 @@ public class ListFunctions
     private async Task<bool> CanAccessTopicAsync(string topicId, string? userId)
     {
         var topic = await _topics.GetByIdAsync(topicId);
-        return topic is not null && topic.IsVisibleTo(userId);
+        if (topic is null) return false;
+        var friendIds = userId is null ? new HashSet<string>() : await _friendships.GetFriendIdsAsync(userId);
+        return topic.IsVisibleTo(userId, friendIds);
     }
 
     private static ListDto ToDto(ListDocument l) => new(

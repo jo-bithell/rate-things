@@ -13,21 +13,27 @@ public class TopicFunctions
 {
     private readonly ITopicRepository _topics;
     private readonly IImageStorageService _images;
+    private readonly IFriendshipRepository _friendships;
 
-    public TopicFunctions(ITopicRepository topics, IImageStorageService images)
+    public TopicFunctions(ITopicRepository topics, IImageStorageService images, IFriendshipRepository friendships)
     {
         _topics = topics;
         _images = images;
+        _friendships = friendships;
     }
+
+    private Task<HashSet<string>> GetFriendIdsAsync(string? userId) =>
+        userId is null ? Task.FromResult(new HashSet<string>()) : _friendships.GetFriendIdsAsync(userId);
 
     [Function("GetTopics")]
     public async Task<IActionResult> GetTopics(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "topics")] HttpRequest req)
     {
         var userId = req.HttpContext.User.GetUserId();
+        var friendIds = await GetFriendIdsAsync(userId);
         var search = req.Query["search"].FirstOrDefault();
         var topics = await _topics.SearchAsync(search);
-        return new OkObjectResult(topics.Where(t => t.IsVisibleTo(userId)).Select(ToDto));
+        return new OkObjectResult(topics.Where(t => t.IsVisibleTo(userId, friendIds)).Select(ToDto));
     }
 
     [Function("GetTopicById")]
@@ -36,9 +42,9 @@ public class TopicFunctions
     {
         var userId = req.HttpContext.User.GetUserId();
         var topic = await _topics.GetByIdAsync(id);
-        if (topic is null || !topic.IsVisibleTo(userId))
+        if (topic is null || !topic.IsVisibleTo(userId, await GetFriendIdsAsync(userId)))
         {
-            // 404 rather than 403 for a private topic you can't see - doesn't confirm it exists.
+            // 404 rather than 403 for a topic you can't see - doesn't confirm it exists.
             return HttpResponseExtensions.NotFoundProblem();
         }
 
@@ -63,9 +69,10 @@ public class TopicFunctions
         }
 
         // Only conflict on a name you can actually see - otherwise this would leak the
-        // existence of someone else's private topic through the error message.
+        // existence of someone else's private (or friends-only, not-your-friend) topic
+        // through the error message.
         var existing = await _topics.GetByNameAsync(body.Name);
-        if (existing is not null && existing.IsVisibleTo(userId))
+        if (existing is not null && existing.IsVisibleTo(userId, await GetFriendIdsAsync(userId)))
         {
             return HttpResponseExtensions.ConflictProblem($"A topic named '{body.Name}' already exists.");
         }

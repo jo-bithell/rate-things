@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 import { ApiError } from '../api/client'
 import ErrorBanner from '../components/ErrorBanner'
 import ImageUploader from '../components/ImageUploader'
+import FriendsManager from '../components/FriendsManager'
 
 export default function AccountPage() {
   const { user, updateProfile, changePassword, deleteAccount, uploadProfileImage, removeProfileImage } = useAuth()
@@ -121,6 +122,14 @@ export default function AccountPage() {
             {savingProfile ? 'Saving…' : 'Save profile'}
           </button>
         </form>
+      </div>
+
+      <div className="card">
+        <h2 className="font-display font-bold mb-3">Friends</h2>
+        <p className="text-sm text-stone-500 mb-4">
+          Friends can see topics you publish that aren't marked private.
+        </p>
+        <FriendsManager />
       </div>
 
       <div className="card">

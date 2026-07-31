@@ -92,15 +92,20 @@ export default function TopicsPage() {
             className="input-field"
           />
           <ImagePicker file={newImage} onChange={setNewImage} />
-          <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
-            <input
-              type="checkbox"
-              checked={newIsPrivate}
-              onChange={(e) => setNewIsPrivate(e.target.checked)}
-              className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500"
-            />
-            Private (only you can see this topic)
-          </label>
+          <div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
+              <input
+                type="checkbox"
+                checked={newIsPrivate}
+                onChange={(e) => setNewIsPrivate(e.target.checked)}
+                className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500"
+              />
+              Private (only you)
+            </label>
+            <p className="text-xs text-stone-400 mt-1 ml-6">
+              Unchecked topics are visible to your friends. Check this to keep it just for you.
+            </p>
+          </div>
           <button type="submit" disabled={creating} className="btn-primary">
             {creating ? 'Creating…' : 'Create topic'}
           </button>
@@ -131,7 +136,11 @@ export default function TopicsPage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <div className="font-bold truncate">{t.name}</div>
-                    {t.isPrivate && <span className="pill-tag shrink-0">🔒 Private</span>}
+                    {t.isPrivate ? (
+                      <span className="pill-tag shrink-0">🔒 Private</span>
+                    ) : (
+                      <span className="pill-tag shrink-0">👥 Friends only</span>
+                    )}
                   </div>
                   {t.description && <div className="text-sm text-stone-500">{t.description}</div>}
                   <div className="text-xs text-stone-400 mt-1">Started by {t.createdByName}</div>

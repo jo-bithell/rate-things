@@ -59,3 +59,32 @@ export interface ListSummary {
   createdAt: string
   updatedAt: string
 }
+
+export interface Friend {
+  userId: string
+  displayName: string
+  imageUrl?: string
+}
+
+export interface FriendRequest {
+  id: string
+  userId: string
+  displayName: string
+  imageUrl?: string
+  createdAt: string
+}
+
+export interface FriendsResponse {
+  friends: Friend[]
+  incoming: FriendRequest[]
+  outgoing: FriendRequest[]
+}
+
+export type RelationshipStatus = 'none' | 'friends' | 'pending_outgoing' | 'pending_incoming'
+
+export interface UserSearchResult {
+  id: string
+  displayName: string
+  imageUrl?: string
+  relationshipStatus: RelationshipStatus
+}

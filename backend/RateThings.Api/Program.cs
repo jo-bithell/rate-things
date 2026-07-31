@@ -35,6 +35,7 @@ var host = new HostBuilder()
         services.AddSingleton<ITopicRepository, TopicRepository>();
         services.AddSingleton<IEntityRepository, EntityRepository>();
         services.AddSingleton<IListRepository, ListRepository>();
+        services.AddSingleton<IFriendshipRepository, FriendshipRepository>();
 
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IJwtService, JwtService>();
