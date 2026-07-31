@@ -7,7 +7,9 @@ import TopicsPage from './pages/TopicsPage'
 import TopicDetailPage from './pages/TopicDetailPage'
 import EntityDetailPage from './pages/EntityDetailPage'
 import ListDetailPage from './pages/ListDetailPage'
-import AccountPage from './pages/AccountPage'
+import AccountLayout from './pages/AccountLayout'
+import AccountSettingsPage from './pages/AccountSettingsPage'
+import AccountFriendsPage from './pages/AccountFriendsPage'
 
 export default function App() {
   return (
@@ -22,7 +24,11 @@ export default function App() {
           <Route path="/topics/:topicId" element={<TopicDetailPage />} />
           <Route path="/entities/:entityId" element={<EntityDetailPage />} />
           <Route path="/lists/:listId" element={<ListDetailPage />} />
-          <Route path="/account" element={<AccountPage />} />
+          <Route path="/account" element={<AccountLayout />}>
+            <Route index element={<Navigate to="/account/settings" replace />} />
+            <Route path="settings" element={<AccountSettingsPage />} />
+            <Route path="friends" element={<AccountFriendsPage />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/topics" replace />} />
