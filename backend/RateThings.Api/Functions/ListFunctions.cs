@@ -37,20 +37,6 @@ public class ListFunctions
         return new OkObjectResult(lists.Select(ToDto));
     }
 
-    [Function("GetMyLists")]
-    public async Task<IActionResult> GetMyLists(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "lists/mine")] HttpRequest req)
-    {
-        var userId = req.HttpContext.User.GetUserId();
-        if (userId is null)
-        {
-            return HttpResponseExtensions.UnauthorizedProblem();
-        }
-
-        var lists = await _lists.GetByOwnerAsync(userId);
-        return new OkObjectResult(lists.Select(ToDto));
-    }
-
     [Function("GetListById")]
     public async Task<IActionResult> GetListById(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "lists/{id}")] HttpRequest req, string id)

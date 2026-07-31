@@ -97,8 +97,9 @@ export default function AccountSettingsPage() {
         </div>
         <form onSubmit={handleSaveProfile} className="space-y-3">
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
+            <label htmlFor="account-email" className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
             <input
+              id="account-email"
               type="email"
               required
               value={email}
@@ -107,8 +108,9 @@ export default function AccountSettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Display name</label>
+            <label htmlFor="account-display-name" className="block text-sm font-semibold text-stone-700 mb-1">Display name</label>
             <input
+              id="account-display-name"
               required
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -127,8 +129,9 @@ export default function AccountSettingsPage() {
         {passwordMessage && <p className="text-sm text-emerald-700 mb-3">{passwordMessage}</p>}
         <form onSubmit={handleChangePassword} className="space-y-3">
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Current password</label>
+            <label htmlFor="account-current-password" className="block text-sm font-semibold text-stone-700 mb-1">Current password</label>
             <input
+              id="account-current-password"
               type="password"
               required
               value={currentPassword}
@@ -137,8 +140,9 @@ export default function AccountSettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">New password</label>
+            <label htmlFor="account-new-password" className="block text-sm font-semibold text-stone-700 mb-1">New password</label>
             <input
+              id="account-new-password"
               type="password"
               required
               minLength={8}
@@ -149,8 +153,9 @@ export default function AccountSettingsPage() {
             <p className="text-xs text-stone-400 mt-1">At least 8 characters.</p>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Confirm new password</label>
+            <label htmlFor="account-confirm-new-password" className="block text-sm font-semibold text-stone-700 mb-1">Confirm new password</label>
             <input
+              id="account-confirm-new-password"
               type="password"
               required
               value={confirmPassword}
@@ -172,8 +177,9 @@ export default function AccountSettingsPage() {
         <ErrorBanner message={deleteError} />
         <form onSubmit={handleDeleteAccount} className="space-y-3">
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Confirm your password</label>
+            <label htmlFor="account-delete-password" className="block text-sm font-semibold text-stone-700 mb-1">Confirm your password</label>
             <input
+              id="account-delete-password"
               type="password"
               required
               value={deletePassword}

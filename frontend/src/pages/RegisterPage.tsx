@@ -34,8 +34,9 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="card space-y-4">
           <ErrorBanner message={error} />
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Display name</label>
+            <label htmlFor="register-display-name" className="block text-sm font-semibold text-stone-700 mb-1">Display name</label>
             <input
+              id="register-display-name"
               required
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -43,8 +44,9 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
+            <label htmlFor="register-email" className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
             <input
+              id="register-email"
               type="email"
               required
               value={email}
@@ -53,8 +55,9 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Password</label>
+            <label htmlFor="register-password" className="block text-sm font-semibold text-stone-700 mb-1">Password</label>
             <input
+              id="register-password"
               type="password"
               required
               minLength={8}

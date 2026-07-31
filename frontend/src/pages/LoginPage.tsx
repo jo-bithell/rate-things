@@ -33,8 +33,9 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="card space-y-4">
           <ErrorBanner message={error} />
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
+            <label htmlFor="login-email" className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
             <input
+              id="login-email"
               type="email"
               required
               value={email}
@@ -43,8 +44,9 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Password</label>
+            <label htmlFor="login-password" className="block text-sm font-semibold text-stone-700 mb-1">Password</label>
             <input
+              id="login-password"
               type="password"
               required
               value={password}

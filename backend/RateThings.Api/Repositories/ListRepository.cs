@@ -24,22 +24,6 @@ public class ListRepository : IListRepository
         return results;
     }
 
-    public async Task<List<ListDocument>> GetByOwnerAsync(string ownerId)
-    {
-        var query = new QueryDefinition("SELECT * FROM c WHERE c.ownerId = @ownerId ORDER BY c.updatedAt DESC")
-            .WithParameter("@ownerId", ownerId);
-
-        var requestOptions = new QueryRequestOptions { PartitionKey = new PartitionKey(ownerId) };
-        var results = new List<ListDocument>();
-        using var iterator = _container.GetItemQueryIterator<ListDocument>(query, requestOptions: requestOptions);
-        while (iterator.HasMoreResults)
-        {
-            results.AddRange(await iterator.ReadNextAsync());
-        }
-
-        return results;
-    }
-
     public async Task<ListDocument?> GetByIdAsync(string id)
     {
         var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id").WithParameter("@id", id);
