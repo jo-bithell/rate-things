@@ -25,6 +25,12 @@ public class ListFunctions
     public async Task<IActionResult> GetListsByTopic(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "topics/{topicId}/lists")] HttpRequest req, string topicId)
     {
+        var userId = req.HttpContext.User.GetUserId();
+        if (!await CanAccessTopicAsync(topicId, userId))
+        {
+            return HttpResponseExtensions.NotFoundProblem();
+        }
+
         var lists = await _lists.GetByTopicAsync(topicId);
         return new OkObjectResult(lists.Select(ToDto));
     }
@@ -47,8 +53,9 @@ public class ListFunctions
     public async Task<IActionResult> GetListById(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "lists/{id}")] HttpRequest req, string id)
     {
+        var userId = req.HttpContext.User.GetUserId();
         var list = await _lists.GetByIdAsync(id);
-        if (list is null)
+        if (list is null || !await CanAccessTopicAsync(list.TopicId, userId))
         {
             return HttpResponseExtensions.NotFoundProblem();
         }
@@ -74,7 +81,7 @@ public class ListFunctions
         }
 
         var topic = await _topics.GetByIdAsync(body.TopicId);
-        if (topic is null)
+        if (topic is null || !topic.IsVisibleTo(userId))
         {
             return HttpResponseExtensions.NotFoundProblem("Topic not found.");
         }
@@ -103,7 +110,7 @@ public class ListFunctions
         }
 
         var list = await _lists.GetByIdAsync(id);
-        if (list is null)
+        if (list is null || !await CanAccessTopicAsync(list.TopicId, userId))
         {
             return HttpResponseExtensions.NotFoundProblem();
         }
@@ -137,7 +144,7 @@ public class ListFunctions
         }
 
         var list = await _lists.GetByIdAsync(id);
-        if (list is null)
+        if (list is null || !await CanAccessTopicAsync(list.TopicId, userId))
         {
             return HttpResponseExtensions.NotFoundProblem();
         }
@@ -183,7 +190,7 @@ public class ListFunctions
         }
 
         var list = await _lists.GetByIdAsync(id);
-        if (list is null)
+        if (list is null || !await CanAccessTopicAsync(list.TopicId, userId))
         {
             return HttpResponseExtensions.NotFoundProblem();
         }
@@ -195,6 +202,12 @@ public class ListFunctions
 
         await _lists.DeleteAsync(id, list.OwnerId);
         return new NoContentResult();
+    }
+
+    private async Task<bool> CanAccessTopicAsync(string topicId, string? userId)
+    {
+        var topic = await _topics.GetByIdAsync(topicId);
+        return topic is not null && topic.IsVisibleTo(userId);
     }
 
     private static ListDto ToDto(ListDocument l) => new(

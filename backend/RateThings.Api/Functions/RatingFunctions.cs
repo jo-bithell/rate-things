@@ -12,11 +12,13 @@ public class RatingFunctions
 {
     private readonly IEntityRepository _entities;
     private readonly IUserRepository _users;
+    private readonly ITopicRepository _topics;
 
-    public RatingFunctions(IEntityRepository entities, IUserRepository users)
+    public RatingFunctions(IEntityRepository entities, IUserRepository users, ITopicRepository topics)
     {
         _entities = entities;
         _users = users;
+        _topics = topics;
     }
 
     [Function("UpsertRating")]
@@ -48,6 +50,12 @@ public class RatingFunctions
 
         var entity = await _entities.GetByIdAsync(id);
         if (entity is null)
+        {
+            return HttpResponseExtensions.NotFoundProblem("Entity not found.");
+        }
+
+        var topic = await _topics.GetByIdAsync(entity.TopicId);
+        if (topic is null || !topic.IsVisibleTo(userId))
         {
             return HttpResponseExtensions.NotFoundProblem("Entity not found.");
         }
@@ -88,6 +96,12 @@ public class RatingFunctions
 
         var entity = await _entities.GetByIdAsync(id);
         if (entity is null)
+        {
+            return HttpResponseExtensions.NotFoundProblem("Entity not found.");
+        }
+
+        var topic = await _topics.GetByIdAsync(entity.TopicId);
+        if (topic is null || !topic.IsVisibleTo(userId))
         {
             return HttpResponseExtensions.NotFoundProblem("Entity not found.");
         }

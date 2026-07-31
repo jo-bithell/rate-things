@@ -24,18 +24,21 @@ public class TopicFunctions
     public async Task<IActionResult> GetTopics(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "topics")] HttpRequest req)
     {
+        var userId = req.HttpContext.User.GetUserId();
         var search = req.Query["search"].FirstOrDefault();
         var topics = await _topics.SearchAsync(search);
-        return new OkObjectResult(topics.Select(ToDto));
+        return new OkObjectResult(topics.Where(t => t.IsVisibleTo(userId)).Select(ToDto));
     }
 
     [Function("GetTopicById")]
     public async Task<IActionResult> GetTopicById(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "topics/{id}")] HttpRequest req, string id)
     {
+        var userId = req.HttpContext.User.GetUserId();
         var topic = await _topics.GetByIdAsync(id);
-        if (topic is null)
+        if (topic is null || !topic.IsVisibleTo(userId))
         {
+            // 404 rather than 403 for a private topic you can't see - doesn't confirm it exists.
             return HttpResponseExtensions.NotFoundProblem();
         }
 
@@ -59,8 +62,10 @@ public class TopicFunctions
             return HttpResponseExtensions.BadRequestProblem("Name is required.");
         }
 
+        // Only conflict on a name you can actually see - otherwise this would leak the
+        // existence of someone else's private topic through the error message.
         var existing = await _topics.GetByNameAsync(body.Name);
-        if (existing is not null)
+        if (existing is not null && existing.IsVisibleTo(userId))
         {
             return HttpResponseExtensions.ConflictProblem($"A topic named '{body.Name}' already exists.");
         }
@@ -69,6 +74,7 @@ public class TopicFunctions
         {
             Name = body.Name.Trim(),
             Description = body.Description?.Trim(),
+            IsPrivate = body.IsPrivate,
             CreatedBy = userId,
             CreatedByName = userName,
         };
@@ -106,6 +112,7 @@ public class TopicFunctions
 
         topic.Name = body.Name.Trim();
         topic.Description = body.Description?.Trim();
+        topic.IsPrivate = body.IsPrivate;
         topic = await _topics.UpdateAsync(topic);
 
         return new OkObjectResult(ToDto(topic));
@@ -204,5 +211,5 @@ public class TopicFunctions
     }
 
     private static TopicDto ToDto(TopicDocument t) =>
-        new(t.Id, t.Name, t.Description, t.ImageUrl, t.CreatedBy, t.CreatedByName, t.CreatedAt, t.UpdatedAt);
+        new(t.Id, t.Name, t.Description, t.ImageUrl, t.IsPrivate, t.CreatedBy, t.CreatedByName, t.CreatedAt, t.UpdatedAt);
 }

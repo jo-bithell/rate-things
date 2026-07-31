@@ -28,6 +28,13 @@ public class EntityFunctions
     public async Task<IActionResult> GetEntities(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "topics/{topicId}/entities")] HttpRequest req, string topicId)
     {
+        var userId = req.HttpContext.User.GetUserId();
+        var topic = await _topics.GetByIdAsync(topicId);
+        if (topic is null || !topic.IsVisibleTo(userId))
+        {
+            return HttpResponseExtensions.NotFoundProblem();
+        }
+
         var search = req.Query["search"].FirstOrDefault();
         var tag = req.Query["tag"].FirstOrDefault();
         var entities = await _entities.SearchAsync(topicId, search, tag);
@@ -38,8 +45,9 @@ public class EntityFunctions
     public async Task<IActionResult> GetEntityById(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "entities/{id}")] HttpRequest req, string id)
     {
+        var userId = req.HttpContext.User.GetUserId();
         var entity = await _entities.GetByIdAsync(id);
-        if (entity is null)
+        if (entity is null || !await CanAccessTopicAsync(entity.TopicId, userId))
         {
             return HttpResponseExtensions.NotFoundProblem();
         }
@@ -51,6 +59,12 @@ public class EntityFunctions
     public async Task<IActionResult> GetEntityTags(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "topics/{topicId}/entities/tags")] HttpRequest req, string topicId)
     {
+        var userId = req.HttpContext.User.GetUserId();
+        if (!await CanAccessTopicAsync(topicId, userId))
+        {
+            return HttpResponseExtensions.NotFoundProblem();
+        }
+
         var tags = await _entities.GetDistinctTagsAsync(topicId);
         return new OkObjectResult(tags);
     }
@@ -67,7 +81,7 @@ public class EntityFunctions
         }
 
         var topic = await _topics.GetByIdAsync(topicId);
-        if (topic is null)
+        if (topic is null || !topic.IsVisibleTo(userId))
         {
             return HttpResponseExtensions.NotFoundProblem("Topic not found.");
         }
@@ -110,7 +124,7 @@ public class EntityFunctions
         }
 
         var entity = await _entities.GetByIdAsync(id);
-        if (entity is null)
+        if (entity is null || !await CanAccessTopicAsync(entity.TopicId, userId))
         {
             return HttpResponseExtensions.NotFoundProblem();
         }
@@ -151,7 +165,7 @@ public class EntityFunctions
         }
 
         var entity = await _entities.GetByIdAsync(id);
-        if (entity is null)
+        if (entity is null || !await CanAccessTopicAsync(entity.TopicId, userId))
         {
             return HttpResponseExtensions.NotFoundProblem();
         }
@@ -177,7 +191,7 @@ public class EntityFunctions
         }
 
         var entity = await _entities.GetByIdAsync(id);
-        if (entity is null)
+        if (entity is null || !await CanAccessTopicAsync(entity.TopicId, userId))
         {
             return HttpResponseExtensions.NotFoundProblem();
         }
@@ -215,7 +229,7 @@ public class EntityFunctions
         }
 
         var entity = await _entities.GetByIdAsync(id);
-        if (entity is null)
+        if (entity is null || !await CanAccessTopicAsync(entity.TopicId, userId))
         {
             return HttpResponseExtensions.NotFoundProblem();
         }
@@ -230,6 +244,12 @@ public class EntityFunctions
         entity = await _entities.UpdateAsync(entity);
 
         return new OkObjectResult(await ToDtoAsync(entity, _users));
+    }
+
+    private async Task<bool> CanAccessTopicAsync(string topicId, string? userId)
+    {
+        var topic = await _topics.GetByIdAsync(topicId);
+        return topic is not null && topic.IsVisibleTo(userId);
     }
 
     private static List<string> NormalizeTags(List<string>? tags) =>

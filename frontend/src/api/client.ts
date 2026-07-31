@@ -98,11 +98,11 @@ export const api = {
 
   getTopic: (id: string) => request<Topic>(`/topics/${id}`),
 
-  createTopic: (name: string, description?: string) =>
-    request<Topic>('/topics', { method: 'POST', body: JSON.stringify({ name, description }) }),
+  createTopic: (name: string, description?: string, isPrivate = false) =>
+    request<Topic>('/topics', { method: 'POST', body: JSON.stringify({ name, description, isPrivate }) }),
 
-  updateTopic: (id: string, name: string, description?: string) =>
-    request<Topic>(`/topics/${id}`, { method: 'PUT', body: JSON.stringify({ name, description }) }),
+  updateTopic: (id: string, name: string, description?: string, isPrivate = false) =>
+    request<Topic>(`/topics/${id}`, { method: 'PUT', body: JSON.stringify({ name, description, isPrivate }) }),
 
   deleteTopic: (id: string) => request<void>(`/topics/${id}`, { method: 'DELETE' }),
 

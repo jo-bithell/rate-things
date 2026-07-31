@@ -15,6 +15,7 @@ export default function TopicsPage() {
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [newImage, setNewImage] = useState<File | null>(null)
+  const [newIsPrivate, setNewIsPrivate] = useState(false)
   const [creating, setCreating] = useState(false)
 
   const load = async (search?: string) => {
@@ -43,7 +44,7 @@ export default function TopicsPage() {
     setCreating(true)
     setError(null)
     try {
-      const created = await api.createTopic(newName.trim(), newDescription.trim() || undefined)
+      const created = await api.createTopic(newName.trim(), newDescription.trim() || undefined, newIsPrivate)
       if (newImage) {
         try {
           await api.uploadTopicImage(created.id, newImage)
@@ -54,6 +55,7 @@ export default function TopicsPage() {
       setNewName('')
       setNewDescription('')
       setNewImage(null)
+      setNewIsPrivate(false)
       setShowCreate(false)
       load(search)
     } catch (err) {
@@ -90,6 +92,15 @@ export default function TopicsPage() {
             className="input-field"
           />
           <ImagePicker file={newImage} onChange={setNewImage} />
+          <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
+            <input
+              type="checkbox"
+              checked={newIsPrivate}
+              onChange={(e) => setNewIsPrivate(e.target.checked)}
+              className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500"
+            />
+            Private (only you can see this topic)
+          </label>
           <button type="submit" disabled={creating} className="btn-primary">
             {creating ? 'Creating…' : 'Create topic'}
           </button>
@@ -118,7 +129,10 @@ export default function TopicsPage() {
                   <img src={t.imageUrl} alt="" className="w-12 h-12 rounded-xl border-2 border-stone-900 object-cover shrink-0" />
                 )}
                 <div className="min-w-0">
-                  <div className="font-bold truncate">{t.name}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-bold truncate">{t.name}</div>
+                    {t.isPrivate && <span className="pill-tag shrink-0">🔒 Private</span>}
+                  </div>
                   {t.description && <div className="text-sm text-stone-500">{t.description}</div>}
                   <div className="text-xs text-stone-400 mt-1">Started by {t.createdByName}</div>
                 </div>
