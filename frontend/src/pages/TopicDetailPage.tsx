@@ -6,6 +6,7 @@ import type { Entity, ListSummary, Topic } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ImageUploader from '../components/ImageUploader'
+import ImagePicker from '../components/ImagePicker'
 
 type Tab = 'entities' | 'lists'
 
@@ -29,6 +30,7 @@ export default function TopicDetailPage() {
   const [newEntityName, setNewEntityName] = useState('')
   const [newEntityDescription, setNewEntityDescription] = useState('')
   const [newEntityTags, setNewEntityTags] = useState('')
+  const [newEntityImage, setNewEntityImage] = useState<File | null>(null)
   const [creatingEntity, setCreatingEntity] = useState(false)
 
   const [lists, setLists] = useState<ListSummary[]>([])
@@ -88,15 +90,23 @@ export default function TopicDetailPage() {
     setError(null)
     setCreatingEntity(true)
     try {
-      await api.createEntity(
+      const created = await api.createEntity(
         topicId,
         newEntityName.trim(),
         newEntityDescription.trim() || undefined,
         newEntityTags.split(',').map((t) => t.trim()).filter(Boolean),
       )
+      if (newEntityImage) {
+        try {
+          await api.uploadEntityImage(created.id, newEntityImage)
+        } catch (err) {
+          setError(err instanceof ApiError ? `Entity created, but the image failed to upload: ${err.message}` : 'Entity created, but the image failed to upload.')
+        }
+      }
       setNewEntityName('')
       setNewEntityDescription('')
       setNewEntityTags('')
+      setNewEntityImage(null)
       setShowCreateEntity(false)
       await loadEntities(search, activeTag)
     } catch (err) {
@@ -259,6 +269,7 @@ export default function TopicDetailPage() {
               <p className="text-xs text-stone-400">
                 Search first — each entity should exist once per topic. If it's already here, rate it instead of re-adding it.
               </p>
+              <ImagePicker file={newEntityImage} onChange={setNewEntityImage} />
               <button type="submit" disabled={creatingEntity} className="btn-primary">
                 {creatingEntity ? 'Adding…' : 'Add entity'}
               </button>

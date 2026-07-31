@@ -4,6 +4,7 @@ import { api, ApiError } from '../api/client'
 import type { Topic } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
+import ImagePicker from '../components/ImagePicker'
 
 export default function TopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([])
@@ -13,6 +14,7 @@ export default function TopicsPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
+  const [newImage, setNewImage] = useState<File | null>(null)
   const [creating, setCreating] = useState(false)
 
   const load = async (search?: string) => {
@@ -37,13 +39,21 @@ export default function TopicsPage() {
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault()
-    if (!newName.trim()) return
+    if (!newName.trim() || creating) return
     setCreating(true)
     setError(null)
     try {
-      await api.createTopic(newName.trim(), newDescription.trim() || undefined)
+      const created = await api.createTopic(newName.trim(), newDescription.trim() || undefined)
+      if (newImage) {
+        try {
+          await api.uploadTopicImage(created.id, newImage)
+        } catch (err) {
+          setError(err instanceof ApiError ? `Topic created, but the image failed to upload: ${err.message}` : 'Topic created, but the image failed to upload.')
+        }
+      }
       setNewName('')
       setNewDescription('')
+      setNewImage(null)
       setShowCreate(false)
       load(search)
     } catch (err) {
@@ -79,6 +89,7 @@ export default function TopicsPage() {
             onChange={(e) => setNewDescription(e.target.value)}
             className="input-field"
           />
+          <ImagePicker file={newImage} onChange={setNewImage} />
           <button type="submit" disabled={creating} className="btn-primary">
             {creating ? 'Creating…' : 'Create topic'}
           </button>
