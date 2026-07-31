@@ -169,7 +169,15 @@ export default function TopicDetailPage() {
     <div className="max-w-3xl mx-auto px-4 py-6 pb-20 sm:pb-6">
       <Link to="/topics" className="text-sm font-semibold text-fuchsia-600">&larr; All topics</Link>
 
-      <div className="flex items-start justify-between mt-2 gap-3">
+      {topic.imageUrl && (
+        <img
+          src={topic.imageUrl}
+          alt={topic.name}
+          className="w-full h-40 sm:h-56 object-cover rounded-2xl border-2 border-stone-900 shadow-pop mt-3"
+        />
+      )}
+
+      <div className="flex items-start justify-between mt-3 gap-3">
         <div>
           <h1 className="text-2xl font-display font-bold">{topic.name}</h1>
           {topic.description && <p className="text-stone-500 text-sm mt-1">{topic.description}</p>}
