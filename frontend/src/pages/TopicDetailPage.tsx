@@ -10,14 +10,6 @@ import ImagePicker from '../components/ImagePicker'
 
 type Tab = 'entities' | 'lists'
 
-function firstRatingComment(entity: Entity): string | null {
-  if (entity.ratings.length === 0) return null
-  const first = [...entity.ratings].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-  )[0]
-  return first.comment?.trim() || null
-}
-
 export default function TopicDetailPage() {
   const { topicId } = useParams<{ topicId: string }>()
   const { user } = useAuth()
@@ -334,31 +326,28 @@ export default function TopicDetailPage() {
             <p className="text-stone-500 text-sm">No entities yet. Add the first one.</p>
           ) : (
             <ul className="space-y-3">
-              {entities.map((e) => {
-                const comment = firstRatingComment(e)
-                return (
-                  <li key={e.id}>
-                    <Link to={`/entities/${e.id}`} className="card-link flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        {e.imageUrl && (
-                          <img src={e.imageUrl} alt="" className="w-10 h-10 rounded-xl border-2 border-stone-900 object-cover shrink-0" />
+              {entities.map((e) => (
+                <li key={e.id}>
+                  <Link to={`/entities/${e.id}`} className="card-link flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {e.imageUrl && (
+                        <img src={e.imageUrl} alt="" className="w-10 h-10 rounded-xl border-2 border-stone-900 object-cover shrink-0" />
+                      )}
+                      <div className="min-w-0">
+                        <div className="font-bold truncate">{e.name}</div>
+                        {e.tags.length > 0 && (
+                          <div className="text-xs text-stone-400 mt-1">{e.tags.join(', ')}</div>
                         )}
-                        <div className="min-w-0">
-                          <div className="font-bold truncate">{e.name}</div>
-                          {e.tags.length > 0 && (
-                            <div className="text-xs text-stone-400 mt-1">{e.tags.join(', ')}</div>
-                          )}
-                          {comment && <p className="text-xs text-stone-500 italic mt-1 truncate">&ldquo;{comment}&rdquo;</p>}
-                        </div>
+                        {e.description && <p className="text-xs text-stone-500 mt-1 truncate">{e.description}</p>}
                       </div>
-                      <div className="flex flex-col items-center gap-1 shrink-0">
-                        <div className="score-badge text-sm">{e.ratingCount > 0 ? e.avgRating.toFixed(1) : '—'}</div>
-                        <div className="text-[10px] text-stone-400">{e.ratingCount} rating{e.ratingCount === 1 ? '' : 's'}</div>
-                      </div>
-                    </Link>
-                  </li>
-                )
-              })}
+                    </div>
+                    <div className="flex flex-col items-center gap-1 shrink-0">
+                      <div className="score-badge text-sm">{e.ratingCount > 0 ? e.avgRating.toFixed(1) : '—'}</div>
+                      <div className="text-[10px] text-stone-400">{e.ratingCount} rating{e.ratingCount === 1 ? '' : 's'}</div>
+                    </div>
+                  </Link>
+                </li>
+              ))}
             </ul>
           )}
         </div>
