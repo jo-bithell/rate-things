@@ -7,6 +7,7 @@ import ErrorBanner from '../components/ErrorBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ImageUploader from '../components/ImageUploader'
 import ImagePicker from '../components/ImagePicker'
+import FriendPicker from '../components/FriendPicker'
 
 type Tab = 'entities' | 'lists'
 
@@ -21,6 +22,7 @@ export default function TopicDetailPage() {
   const [editTopicName, setEditTopicName] = useState('')
   const [editTopicDescription, setEditTopicDescription] = useState('')
   const [editTopicIsPrivate, setEditTopicIsPrivate] = useState(false)
+  const [editInvitedUserIds, setEditInvitedUserIds] = useState<string[]>([])
   const [savingTopic, setSavingTopic] = useState(false)
 
   const [entities, setEntities] = useState<Entity[]>([])
@@ -72,6 +74,7 @@ export default function TopicDetailPage() {
       setEditTopicName(topic.name)
       setEditTopicDescription(topic.description ?? '')
       setEditTopicIsPrivate(topic.isPrivate)
+      setEditInvitedUserIds(topic.sharedWith.map((u) => u.id))
     }
   }, [topic])
 
@@ -141,7 +144,7 @@ export default function TopicDetailPage() {
     setError(null)
     setSavingTopic(true)
     try {
-      const updated = await api.updateTopic(topicId, editTopicName.trim(), editTopicDescription.trim() || undefined, editTopicIsPrivate)
+      const updated = await api.updateTopic(topicId, editTopicName.trim(), editTopicDescription.trim() || undefined, editTopicIsPrivate, editInvitedUserIds)
       setTopic(updated)
       setEditingTopic(false)
     } catch (err) {
@@ -200,6 +203,11 @@ export default function TopicDetailPage() {
             )}
           </div>
           {topic.description && <p className="text-stone-500 text-sm mt-1">{topic.description}</p>}
+          {topic.isPrivate && topic.sharedWith.length > 0 && (
+            <p className="text-xs text-stone-400 mt-1">
+              Shared with {topic.sharedWith.map((u) => u.displayName).join(', ')}
+            </p>
+          )}
         </div>
         {isOwner && (
           <div className="text-sm shrink-0 flex gap-3">
@@ -230,12 +238,18 @@ export default function TopicDetailPage() {
                 onChange={(e) => setEditTopicIsPrivate(e.target.checked)}
                 className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500"
               />
-              Private (only you)
+              Private (only invited people)
             </label>
             <p className="text-xs text-stone-400 mt-1 ml-6">
-              Unchecked topics are visible to your friends. Check this to keep it just for you.
+              Unchecked topics are visible to your friends. Check this to share with specific people instead.
             </p>
           </div>
+          {editTopicIsPrivate && (
+            <div>
+              <div className="text-sm font-semibold text-stone-700 mb-2">Share with</div>
+              <FriendPicker selectedIds={editInvitedUserIds} onChange={setEditInvitedUserIds} />
+            </div>
+          )}
           <button type="submit" disabled={savingTopic} className="btn-primary">{savingTopic ? 'Saving…' : 'Save'}</button>
         </form>
       )}

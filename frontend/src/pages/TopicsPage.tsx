@@ -5,6 +5,7 @@ import type { Topic } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ImagePicker from '../components/ImagePicker'
+import FriendPicker from '../components/FriendPicker'
 
 export default function TopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([])
@@ -16,6 +17,7 @@ export default function TopicsPage() {
   const [newDescription, setNewDescription] = useState('')
   const [newImage, setNewImage] = useState<File | null>(null)
   const [newIsPrivate, setNewIsPrivate] = useState(false)
+  const [newInvitedUserIds, setNewInvitedUserIds] = useState<string[]>([])
   const [creating, setCreating] = useState(false)
 
   const load = async (search?: string) => {
@@ -44,7 +46,7 @@ export default function TopicsPage() {
     setCreating(true)
     setError(null)
     try {
-      const created = await api.createTopic(newName.trim(), newDescription.trim() || undefined, newIsPrivate)
+      const created = await api.createTopic(newName.trim(), newDescription.trim() || undefined, newIsPrivate, newInvitedUserIds)
       if (newImage) {
         try {
           await api.uploadTopicImage(created.id, newImage)
@@ -56,6 +58,7 @@ export default function TopicsPage() {
       setNewDescription('')
       setNewImage(null)
       setNewIsPrivate(false)
+      setNewInvitedUserIds([])
       setShowCreate(false)
       load(search)
     } catch (err) {
@@ -100,12 +103,18 @@ export default function TopicsPage() {
                 onChange={(e) => setNewIsPrivate(e.target.checked)}
                 className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500"
               />
-              Private (only you)
+              Private (only invited people)
             </label>
             <p className="text-xs text-stone-400 mt-1 ml-6">
-              Unchecked topics are visible to your friends. Check this to keep it just for you.
+              Unchecked topics are visible to your friends. Check this to share with specific people instead.
             </p>
           </div>
+          {newIsPrivate && (
+            <div>
+              <div className="text-sm font-semibold text-stone-700 mb-2">Share with</div>
+              <FriendPicker selectedIds={newInvitedUserIds} onChange={setNewInvitedUserIds} />
+            </div>
+          )}
           <button type="submit" disabled={creating} className="btn-primary">
             {creating ? 'Creating…' : 'Create topic'}
           </button>

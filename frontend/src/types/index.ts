@@ -5,6 +5,12 @@ export interface User {
   imageUrl?: string
 }
 
+export interface SharedUser {
+  id: string
+  displayName: string
+  imageUrl?: string
+}
+
 export interface Topic {
   id: string
   name: string
@@ -15,6 +21,7 @@ export interface Topic {
   createdByName: string
   createdAt: string
   updatedAt: string
+  sharedWith: SharedUser[]
 }
 
 export interface Rating {

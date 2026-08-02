@@ -113,11 +113,11 @@ export const api = {
 
   getTopic: (id: string) => request<Topic>(`/topics/${id}`),
 
-  createTopic: (name: string, description?: string, isPrivate = false) =>
-    request<Topic>('/topics', { method: 'POST', body: JSON.stringify({ name, description, isPrivate }) }),
+  createTopic: (name: string, description?: string, isPrivate = false, invitedUserIds?: string[]) =>
+    request<Topic>('/topics', { method: 'POST', body: JSON.stringify({ name, description, isPrivate, invitedUserIds }) }),
 
-  updateTopic: (id: string, name: string, description?: string, isPrivate = false) =>
-    request<Topic>(`/topics/${id}`, { method: 'PUT', body: JSON.stringify({ name, description, isPrivate }) }),
+  updateTopic: (id: string, name: string, description?: string, isPrivate = false, invitedUserIds?: string[]) =>
+    request<Topic>(`/topics/${id}`, { method: 'PUT', body: JSON.stringify({ name, description, isPrivate, invitedUserIds }) }),
 
   deleteTopic: (id: string) => request<void>(`/topics/${id}`, { method: 'DELETE' }),
 
