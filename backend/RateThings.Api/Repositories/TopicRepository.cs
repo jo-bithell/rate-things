@@ -14,11 +14,11 @@ public class TopicRepository : ITopicRepository
         QueryDefinition query;
         if (string.IsNullOrWhiteSpace(search))
         {
-            query = new QueryDefinition("SELECT * FROM c ORDER BY c.name");
+            query = new QueryDefinition("SELECT * FROM c ORDER BY c.updatedAt DESC");
         }
         else
         {
-            query = new QueryDefinition("SELECT * FROM c WHERE CONTAINS(LOWER(c.name), @search) ORDER BY c.name")
+            query = new QueryDefinition("SELECT * FROM c WHERE CONTAINS(LOWER(c.name), @search) ORDER BY c.updatedAt DESC")
                 .WithParameter("@search", search.Trim().ToLowerInvariant());
         }
 

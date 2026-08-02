@@ -1,15 +1,24 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 import type { Topic } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ImagePicker from '../components/ImagePicker'
 import FriendPicker from '../components/FriendPicker'
 
+type SortBy = 'updatedAt' | 'name'
+
+const PAGE_SIZE = 20
+
 export default function TopicsPage() {
+  const { user } = useAuth()
   const [topics, setTopics] = useState<Topic[]>([])
   const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState<SortBy>('updatedAt')
+  const [createdByMeOnly, setCreatedByMeOnly] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
@@ -34,6 +43,22 @@ export default function TopicsPage() {
   useEffect(() => {
     load()
   }, [])
+
+  const filteredSortedTopics = useMemo(() => {
+    const filtered = createdByMeOnly ? topics.filter((t) => t.createdBy === user?.id) : topics
+    return [...filtered].sort((a, b) =>
+      sortBy === 'name'
+        ? a.name.localeCompare(b.name)
+        : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    )
+  }, [topics, sortBy, createdByMeOnly, user?.id])
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [topics, sortBy, createdByMeOnly])
+
+  const visibleTopics = filteredSortedTopics.slice(0, visibleCount)
+  const remainingCount = filteredSortedTopics.length - visibleTopics.length
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault()
@@ -130,13 +155,38 @@ export default function TopicsPage() {
         />
       </form>
 
+      <div className="flex flex-wrap items-center gap-4 mb-4">
+        <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
+          Sort by
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortBy)}
+            className="input-field w-auto py-1.5"
+          >
+            <option value="updatedAt">Last updated</option>
+            <option value="name">Name A-Z</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
+          <input
+            type="checkbox"
+            checked={createdByMeOnly}
+            onChange={(e) => setCreatedByMeOnly(e.target.checked)}
+            className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500"
+          />
+          Created by me
+        </label>
+      </div>
+
       {loading ? (
         <LoadingSpinner />
       ) : topics.length === 0 ? (
         <p className="text-stone-500 text-sm">No topics yet. Create the first one.</p>
+      ) : filteredSortedTopics.length === 0 ? (
+        <p className="text-stone-500 text-sm">No topics match this filter.</p>
       ) : (
         <ul className="space-y-3">
-          {topics.map((t) => (
+          {visibleTopics.map((t) => (
             <li key={t.id}>
               <Link to={`/topics/${t.id}`} className="card-link flex items-center gap-3">
                 {t.imageUrl && (
@@ -158,6 +208,14 @@ export default function TopicsPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {remainingCount > 0 && (
+        <div className="flex justify-center mt-4">
+          <button onClick={() => setVisibleCount((v) => v + PAGE_SIZE)} className="btn-link">
+            Load {Math.min(remainingCount, PAGE_SIZE)} more
+          </button>
+        </div>
       )}
     </div>
   )
