@@ -177,20 +177,17 @@ export default function EntityDetailPage() {
         </div>
       )}
 
-      {isOwner && (
-        <div className="mt-3">
-          <ImageUploader
-            imageUrl={entity.imageUrl}
-            alt={entity.name}
-            placeholder="🖼️"
-            onUpload={handleUploadImage}
-            onRemove={handleRemoveImage}
-          />
-        </div>
-      )}
-
       {editing && (
         <form onSubmit={handleEdit} className="card mt-3 space-y-3">
+          {isOwner && (
+            <ImageUploader
+              imageUrl={entity.imageUrl}
+              alt={entity.name}
+              placeholder="🖼️"
+              onUpload={handleUploadImage}
+              onRemove={handleRemoveImage}
+            />
+          )}
           <input value={editName} onChange={(e) => setEditName(e.target.value)} className="input-field" />
           <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="Description" className="input-field" />
           <input value={editTags} onChange={(e) => setEditTags(e.target.value)} placeholder="Tags, comma separated" className="input-field" />

@@ -209,20 +209,17 @@ export default function TopicDetailPage() {
         )}
       </div>
 
-      {isOwner && (
-        <div className="mt-3">
-          <ImageUploader
-            imageUrl={topic.imageUrl}
-            alt={topic.name}
-            placeholder="🗂️"
-            onUpload={handleUploadTopicImage}
-            onRemove={handleRemoveTopicImage}
-          />
-        </div>
-      )}
-
       {editingTopic && (
         <form onSubmit={handleEditTopic} className="card mt-3 space-y-3">
+          {isOwner && (
+            <ImageUploader
+              imageUrl={topic.imageUrl}
+              alt={topic.name}
+              placeholder="🗂️"
+              onUpload={handleUploadTopicImage}
+              onRemove={handleRemoveTopicImage}
+            />
+          )}
           <input value={editTopicName} onChange={(e) => setEditTopicName(e.target.value)} className="input-field" />
           <input value={editTopicDescription} onChange={(e) => setEditTopicDescription(e.target.value)} placeholder="Description" className="input-field" />
           <div>
