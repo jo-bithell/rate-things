@@ -124,14 +124,14 @@ export default function TopicsPage() {
             <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
               <input
                 type="checkbox"
-                checked={newIsPrivate}
-                onChange={(e) => setNewIsPrivate(e.target.checked)}
+                checked={!newIsPrivate}
+                onChange={(e) => setNewIsPrivate(!e.target.checked)}
                 className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500"
               />
-              Private (only invited people)
+              Public (shared with all friends)
             </label>
             <p className="text-xs text-stone-400 mt-1 ml-6">
-              Unchecked topics are visible to your friends. Check this to share with specific people instead.
+              Uncheck this to share with specific people instead.
             </p>
           </div>
           {newIsPrivate && (
