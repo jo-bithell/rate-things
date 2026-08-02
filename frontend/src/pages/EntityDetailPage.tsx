@@ -161,7 +161,7 @@ export default function EntityDetailPage() {
           <div className="text-xs text-stone-400 mt-2">Added by {entity.createdByName}</div>
         </div>
         <div className="flex flex-col items-center gap-1 shrink-0">
-          <div className="score-badge text-lg w-14 h-14">{entity.ratingCount > 0 ? entity.avgRating.toFixed(1) : '—'}</div>
+          {entity.ratingCount > 0 && <div className="score-badge text-lg w-14 h-14">{entity.avgRating.toFixed(1)}</div>}
           <div className="text-xs text-stone-400">{entity.ratingCount} rating{entity.ratingCount === 1 ? '' : 's'}</div>
         </div>
       </div>
