@@ -199,7 +199,7 @@ export default function TopicDetailPage() {
             {topic.isPrivate ? (
               <span className="pill-tag shrink-0">🔒 Private</span>
             ) : (
-              <span className="pill-tag shrink-0">👥 Friends only</span>
+              <span className="pill-tag shrink-0">👥 Shared to all friends</span>
             )}
           </div>
           {topic.description && <p className="text-stone-500 text-sm mt-1">{topic.description}</p>}

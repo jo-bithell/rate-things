@@ -195,11 +195,7 @@ export default function TopicsPage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <div className="font-bold truncate">{t.name}</div>
-                    {t.isPrivate ? (
-                      <span className="pill-tag shrink-0">🔒 Private</span>
-                    ) : (
-                      <span className="pill-tag shrink-0">👥 Friends only</span>
-                    )}
+                    {t.isPrivate && <span className="pill-tag shrink-0">🔒 Private</span>}
                   </div>
                   {t.description && <div className="text-sm text-stone-500">{t.description}</div>}
                   <div className="text-xs text-stone-400 mt-1">Started by {t.createdByName}</div>
