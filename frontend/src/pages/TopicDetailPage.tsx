@@ -406,7 +406,7 @@ export default function TopicDetailPage() {
                       </div>
                     </div>
                     <div className="flex flex-col items-center gap-1 shrink-0">
-                      <div className="score-badge text-sm">{e.ratingCount > 0 ? e.avgRating.toFixed(1) : '—'}</div>
+                      {e.ratingCount > 0 && <div className="score-badge text-sm">{e.avgRating.toFixed(1)}</div>}
                       <div className="text-[10px] text-stone-400">{e.ratingCount} rating{e.ratingCount === 1 ? '' : 's'}</div>
                     </div>
                   </Link>
