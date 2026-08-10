@@ -13,14 +13,16 @@ public class EntityFunctions
 {
     private readonly IEntityRepository _entities;
     private readonly ITopicRepository _topics;
+    private readonly IListRepository _lists;
     private readonly IImageStorageService _images;
     private readonly IUserRepository _users;
     private readonly IFriendshipRepository _friendships;
 
-    public EntityFunctions(IEntityRepository entities, ITopicRepository topics, IImageStorageService images, IUserRepository users, IFriendshipRepository friendships)
+    public EntityFunctions(IEntityRepository entities, ITopicRepository topics, IListRepository lists, IImageStorageService images, IUserRepository users, IFriendshipRepository friendships)
     {
         _entities = entities;
         _topics = topics;
+        _lists = lists;
         _images = images;
         _users = users;
         _friendships = friendships;
@@ -182,6 +184,7 @@ public class EntityFunctions
 
         await _images.DeleteAsync(entity.ImageUrl);
         await _entities.DeleteAsync(id, entity.TopicId);
+        await RemoveFromListsAsync(entity.TopicId, id);
         return new NoContentResult();
     }
 
@@ -249,6 +252,23 @@ public class EntityFunctions
         entity = await _entities.UpdateAsync(entity);
 
         return new OkObjectResult(await ToDtoAsync(entity, _users));
+    }
+
+    /// <summary>A deleted entity would otherwise linger in any list that referenced it,
+    /// showing up as "Unknown entity" - strip it out of every list in the topic and
+    /// renumber the remaining positions.</summary>
+    private async Task RemoveFromListsAsync(string topicId, string entityId)
+    {
+        var lists = await _lists.GetByTopicAsync(topicId);
+        foreach (var list in lists.Where(l => l.Entries.Any(e => e.EntityId == entityId)))
+        {
+            list.Entries = list.Entries
+                .Where(e => e.EntityId != entityId)
+                .OrderBy(e => e.Position)
+                .Select((e, index) => new ListEntry { EntityId = e.EntityId, Position = index })
+                .ToList();
+            await _lists.UpdateAsync(list);
+        }
     }
 
     private async Task<bool> CanAccessTopicAsync(string topicId, string? userId)
