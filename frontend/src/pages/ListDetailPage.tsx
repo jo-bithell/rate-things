@@ -1,10 +1,83 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import {
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { api, ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
-import type { Entity, ListSummary } from '../types'
+import type { Entity, ListEntry, ListSummary } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
+
+function SortableEntry({
+  entry,
+  index,
+  entity,
+  isOwner,
+  reordering,
+  onRemove,
+}: {
+  entry: ListEntry
+  index: number
+  entity: Entity | undefined
+  isOwner: boolean
+  reordering: boolean
+  onRemove: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: entry.entityId,
+    disabled: !isOwner || reordering,
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <li ref={setNodeRef} style={style} className="card py-3 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        {isOwner && (
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            aria-label="Drag to reorder"
+            className="text-stone-400 hover:text-stone-600 cursor-grab active:cursor-grabbing touch-none disabled:opacity-30"
+            disabled={reordering}
+          >
+            ⠿
+          </button>
+        )}
+        <span className="score-badge w-7 h-7 text-xs bg-fuchsia-100 border-fuchsia-300">{index + 1}</span>
+        <div>
+          <Link to={`/entities/${entry.entityId}`} className="font-semibold hover:text-fuchsia-600">
+            {entity?.name ?? 'Unknown entity'}
+          </Link>
+          {entity && <span className="text-xs text-stone-400 ml-2">{entity.ratingCount > 0 ? `${entity.avgRating.toFixed(1)}/10` : 'unrated'}</span>}
+        </div>
+      </div>
+      {isOwner && (
+        <button onClick={onRemove} disabled={reordering} className="text-rose-500 ml-1 hover:text-rose-700 disabled:opacity-30">✕</button>
+      )}
+    </li>
+  )
+}
 
 export default function ListDetailPage() {
   const { listId } = useParams<{ listId: string }>()
@@ -59,6 +132,11 @@ export default function ListDetailPage() {
 
   const isOwner = user?.id === list?.ownerId
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
   const persistOrder = async (entityIds: string[]) => {
     if (!listId || reordering) return
     setReordering(true)
@@ -71,13 +149,15 @@ export default function ListDetailPage() {
     }
   }
 
-  const move = (index: number, direction: -1 | 1) => {
-    if (reordering) return
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id || reordering) return
     const ids = orderedEntries.map((e) => e.entityId)
-    const target = index + direction
-    if (target < 0 || target >= ids.length) return
-    ;[ids[index], ids[target]] = [ids[target], ids[index]]
-    persistOrder(ids)
+    const oldIndex = ids.indexOf(active.id as string)
+    const newIndex = ids.indexOf(over.id as string)
+    const reorderedIds = arrayMove(ids, oldIndex, newIndex)
+    setList((prev) => (prev ? { ...prev, entries: reorderedIds.map((entityId, position) => ({ entityId, position })) } : prev))
+    persistOrder(reorderedIds)
   }
 
   const removeEntry = (entityId: string) => {
@@ -162,31 +242,23 @@ export default function ListDetailPage() {
         {orderedEntries.length === 0 ? (
           <p className="text-stone-500 text-sm">No entries yet. Add some below.</p>
         ) : (
-          <ol className="space-y-2">
-            {orderedEntries.map((entry, index) => {
-              const e = entitiesById[entry.entityId]
-              return (
-                <li key={entry.entityId} className="card py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="score-badge w-7 h-7 text-xs bg-fuchsia-100 border-fuchsia-300">{index + 1}</span>
-                    <div>
-                      <Link to={`/entities/${entry.entityId}`} className="font-semibold hover:text-fuchsia-600">
-                        {e?.name ?? 'Unknown entity'}
-                      </Link>
-                      {e && <span className="text-xs text-stone-400 ml-2">{e.ratingCount > 0 ? `${e.avgRating.toFixed(1)}/10` : 'unrated'}</span>}
-                    </div>
-                  </div>
-                  {isOwner && (
-                    <div className="flex items-center gap-2 text-stone-400">
-                      <button onClick={() => move(index, -1)} disabled={reordering || index === 0} className="disabled:opacity-30 hover:text-fuchsia-600">▲</button>
-                      <button onClick={() => move(index, 1)} disabled={reordering || index === orderedEntries.length - 1} className="disabled:opacity-30 hover:text-fuchsia-600">▼</button>
-                      <button onClick={() => removeEntry(entry.entityId)} disabled={reordering} className="text-rose-500 ml-1 hover:text-rose-700 disabled:opacity-30">✕</button>
-                    </div>
-                  )}
-                </li>
-              )
-            })}
-          </ol>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={orderedEntries.map((e) => e.entityId)} strategy={verticalListSortingStrategy}>
+              <ol className="space-y-2">
+                {orderedEntries.map((entry, index) => (
+                  <SortableEntry
+                    key={entry.entityId}
+                    entry={entry}
+                    index={index}
+                    entity={entitiesById[entry.entityId]}
+                    isOwner={isOwner}
+                    reordering={reordering}
+                    onRemove={() => removeEntry(entry.entityId)}
+                  />
+                ))}
+              </ol>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 
