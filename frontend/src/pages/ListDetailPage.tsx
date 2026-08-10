@@ -23,6 +23,8 @@ import type { Entity, ListEntry, ListSummary } from '../types'
 import ErrorBanner from '../components/ErrorBanner'
 import LoadingSpinner from '../components/LoadingSpinner'
 
+const PAGE_SIZE = 20
+
 function SortableEntry({
   entry,
   index,
@@ -97,6 +99,7 @@ export default function ListDetailPage() {
   const [reordering, setReordering] = useState(false)
 
   const [addSearch, setAddSearch] = useState('')
+  const [addVisibleCount, setAddVisibleCount] = useState(PAGE_SIZE)
 
   const load = async () => {
     if (!listId) return
@@ -206,6 +209,8 @@ export default function ListDetailPage() {
   const candidateEntities = Object.values(entitiesById)
     .filter((e) => !orderedEntries.some((entry) => entry.entityId === e.id))
     .filter((e) => e.name.toLowerCase().includes(addSearch.toLowerCase()))
+  const visibleCandidates = candidateEntities.slice(0, addVisibleCount)
+  const remainingCandidateCount = candidateEntities.length - visibleCandidates.length
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-20 sm:pb-6">
@@ -268,15 +273,20 @@ export default function ListDetailPage() {
           <input
             placeholder="Search entities to add…"
             value={addSearch}
-            onChange={(e) => setAddSearch(e.target.value)}
+            onChange={(e) => {
+              setAddSearch(e.target.value)
+              setAddVisibleCount(PAGE_SIZE)
+            }}
             className="input-field mb-2"
           />
-          {addSearch && (
-            <ul className="space-y-1 max-h-64 overflow-y-auto">
-              {candidateEntities.length === 0 ? (
-                <li className="text-sm text-stone-400">No matches. You can create a new entity from the topic's Entities tab.</li>
-              ) : (
-                candidateEntities.map((e) => (
+          {candidateEntities.length === 0 ? (
+            <p className="text-sm text-stone-400">
+              {addSearch ? 'No matches.' : "Every entity in this topic is already on the list."} You can create a new entity from the topic's Entities tab.
+            </p>
+          ) : (
+            <>
+              <ul className="space-y-1">
+                {visibleCandidates.map((e) => (
                   <li key={e.id}>
                     <button
                       onClick={() => addEntry(e.id)}
@@ -286,9 +296,16 @@ export default function ListDetailPage() {
                       {e.name}
                     </button>
                   </li>
-                ))
+                ))}
+              </ul>
+              {remainingCandidateCount > 0 && (
+                <div className="flex justify-center mt-2">
+                  <button onClick={() => setAddVisibleCount((v) => v + PAGE_SIZE)} className="btn-link">
+                    Load {Math.min(remainingCandidateCount, PAGE_SIZE)} more
+                  </button>
+                </div>
               )}
-            </ul>
+            </>
           )}
         </div>
       )}

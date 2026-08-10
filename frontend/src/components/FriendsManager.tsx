@@ -21,6 +21,8 @@ function Avatar({ imageUrl, name }: { imageUrl?: string; name: string }) {
   )
 }
 
+const PAGE_SIZE = 20
+
 export default function FriendsManager() {
   const [friends, setFriends] = useState<Friend[]>([])
   const [incoming, setIncoming] = useState<FriendRequest[]>([])
@@ -30,6 +32,7 @@ export default function FriendsManager() {
 
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<UserSearchResult[]>([])
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [searching, setSearching] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
 
@@ -39,29 +42,34 @@ export default function FriendsManager() {
     setOutgoing(r.outgoing)
   }
 
+  const runSearch = async (q: string) => {
+    setSearching(true)
+    setError(null)
+    try {
+      setResults(await api.searchUsers(q))
+      setVisibleCount(PAGE_SIZE)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Search failed.')
+    } finally {
+      setSearching(false)
+    }
+  }
+
   useEffect(() => {
     api
       .getFriends()
       .then(applyResponse)
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Failed to load friends.'))
       .finally(() => setLoading(false))
+    // Blank query browses everyone rather than searching - shows a pageable list to
+    // pick from without already knowing who to search for.
+    runSearch('')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleSearch = async (e: FormEvent) => {
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault()
-    if (!query.trim()) {
-      setResults([])
-      return
-    }
-    setSearching(true)
-    setError(null)
-    try {
-      setResults(await api.searchUsers(query.trim()))
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Search failed.')
-    } finally {
-      setSearching(false)
-    }
+    runSearch(query.trim())
   }
 
   const handleSendRequest = async (userId: string) => {
@@ -151,28 +159,37 @@ export default function FriendsManager() {
       </form>
 
       {results.length > 0 && (
-        <ul className="space-y-2 mb-4">
-          {results.map((u) => (
-            <li key={u.id} className="flex items-center justify-between gap-3 border-2 border-stone-200 rounded-xl p-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <Avatar imageUrl={u.imageUrl} name={u.displayName} />
-                <span className="font-semibold text-sm truncate">{u.displayName}</span>
-              </div>
-              {u.relationshipStatus === 'none' && (
-                <button
-                  onClick={() => handleSendRequest(u.id)}
-                  disabled={busyId === u.id}
-                  className="btn-link shrink-0 disabled:opacity-50"
-                >
-                  {busyId === u.id ? 'Sending…' : 'Add friend'}
-                </button>
-              )}
-              {u.relationshipStatus === 'pending_outgoing' && <span className="text-xs text-stone-400 shrink-0">Requested</span>}
-              {u.relationshipStatus === 'pending_incoming' && <span className="text-xs text-stone-400 shrink-0">See requests below</span>}
-              {u.relationshipStatus === 'friends' && <span className="text-xs text-stone-400 shrink-0">Already friends</span>}
-            </li>
-          ))}
-        </ul>
+        <div className="mb-4">
+          <ul className="space-y-2">
+            {results.slice(0, visibleCount).map((u) => (
+              <li key={u.id} className="flex items-center justify-between gap-3 border-2 border-stone-200 rounded-xl p-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Avatar imageUrl={u.imageUrl} name={u.displayName} />
+                  <span className="font-semibold text-sm truncate">{u.displayName}</span>
+                </div>
+                {u.relationshipStatus === 'none' && (
+                  <button
+                    onClick={() => handleSendRequest(u.id)}
+                    disabled={busyId === u.id}
+                    className="btn-link shrink-0 disabled:opacity-50"
+                  >
+                    {busyId === u.id ? 'Sending…' : 'Add friend'}
+                  </button>
+                )}
+                {u.relationshipStatus === 'pending_outgoing' && <span className="text-xs text-stone-400 shrink-0">Requested</span>}
+                {u.relationshipStatus === 'pending_incoming' && <span className="text-xs text-stone-400 shrink-0">See requests below</span>}
+                {u.relationshipStatus === 'friends' && <span className="text-xs text-stone-400 shrink-0">Already friends</span>}
+              </li>
+            ))}
+          </ul>
+          {results.length > visibleCount && (
+            <div className="flex justify-center mt-2">
+              <button onClick={() => setVisibleCount((v) => v + PAGE_SIZE)} className="btn-link">
+                Load {Math.min(results.length - visibleCount, PAGE_SIZE)} more
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       {incoming.length > 0 && (

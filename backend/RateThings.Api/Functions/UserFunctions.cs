@@ -55,12 +55,9 @@ public class UserFunctions
             return HttpResponseExtensions.UnauthorizedProblem();
         }
 
-        var q = req.Query["q"].FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(q))
-        {
-            return new OkObjectResult(Array.Empty<UserSearchResultDto>());
-        }
-
+        // Blank q browses everyone (excluding self) rather than searching by name -
+        // lets the picker be paged through without already knowing who to look for.
+        var q = req.Query["q"].FirstOrDefault() ?? "";
         var matches = await _users.SearchByDisplayNameAsync(q, excludeUserId: userId);
         var relationships = await _friendships.GetForUserAsync(userId);
         var relationshipByOtherUserId = relationships.ToDictionary(f => f.OtherUserId(userId));

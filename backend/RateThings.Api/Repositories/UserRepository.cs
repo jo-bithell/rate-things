@@ -25,13 +25,12 @@ public class UserRepository : IUserRepository
         return null;
     }
 
-    public async Task<List<UserDocument>> SearchByDisplayNameAsync(string query, string excludeUserId, int limit = 20)
+    public async Task<List<UserDocument>> SearchByDisplayNameAsync(string query, string excludeUserId)
     {
         var sql = new QueryDefinition(
-                "SELECT * FROM c WHERE c.id != @excludeUserId AND CONTAINS(LOWER(c.displayName), @query) ORDER BY c.displayName OFFSET 0 LIMIT @limit")
+                "SELECT * FROM c WHERE c.id != @excludeUserId AND CONTAINS(LOWER(c.displayName), @query) ORDER BY c.displayName")
             .WithParameter("@excludeUserId", excludeUserId)
-            .WithParameter("@query", query.Trim().ToLowerInvariant())
-            .WithParameter("@limit", limit);
+            .WithParameter("@query", query.Trim().ToLowerInvariant());
 
         var results = new List<UserDocument>();
         using var iterator = _container.GetItemQueryIterator<UserDocument>(sql);
