@@ -8,6 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import ImageUploader from '../components/ImageUploader'
 import ImagePicker from '../components/ImagePicker'
 import FriendPicker from '../components/FriendPicker'
+import EntityPicker from '../components/EntityPicker'
 
 type Tab = 'entities' | 'lists'
 type EntitySortBy = 'updatedAt' | 'name'
@@ -45,6 +46,7 @@ export default function TopicDetailPage() {
   const [lists, setLists] = useState<ListSummary[]>([])
   const [showCreateList, setShowCreateList] = useState(false)
   const [newListName, setNewListName] = useState('')
+  const [newListEntityIds, setNewListEntityIds] = useState<string[]>([])
   const [creatingList, setCreatingList] = useState(false)
 
   const [error, setError] = useState<string | null>(null)
@@ -149,8 +151,12 @@ export default function TopicDetailPage() {
     setError(null)
     setCreatingList(true)
     try {
-      await api.createList(topicId, newListName.trim())
+      const created = await api.createList(topicId, newListName.trim())
+      if (newListEntityIds.length > 0) {
+        await api.replaceListEntries(created.id, newListEntityIds)
+      }
       setNewListName('')
+      setNewListEntityIds([])
       setShowCreateList(false)
       await loadLists()
     } catch (err) {
@@ -436,6 +442,10 @@ export default function TopicDetailPage() {
                 onChange={(e) => setNewListName(e.target.value)}
                 className="input-field"
               />
+              <div>
+                <div className="text-sm font-semibold text-stone-700 mb-2">Add entities (optional)</div>
+                {topicId && <EntityPicker topicId={topicId} selectedIds={newListEntityIds} onChange={setNewListEntityIds} />}
+              </div>
               <button type="submit" disabled={creatingList} className="btn-primary">
                 {creatingList ? 'Creating…' : 'Create list'}
               </button>
