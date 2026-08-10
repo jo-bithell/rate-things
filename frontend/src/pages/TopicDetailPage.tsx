@@ -12,6 +12,8 @@ import FriendPicker from '../components/FriendPicker'
 type Tab = 'entities' | 'lists'
 type EntitySortBy = 'updatedAt' | 'name'
 
+const ENTITY_PAGE_SIZE = 20
+
 export default function TopicDetailPage() {
   const { topicId } = useParams<{ topicId: string }>()
   const { user } = useAuth()
@@ -32,6 +34,7 @@ export default function TopicDetailPage() {
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [entitySortBy, setEntitySortBy] = useState<EntitySortBy>('updatedAt')
   const [entityCreatedByMeOnly, setEntityCreatedByMeOnly] = useState(false)
+  const [entityVisibleCount, setEntityVisibleCount] = useState(ENTITY_PAGE_SIZE)
   const [showCreateEntity, setShowCreateEntity] = useState(false)
   const [newEntityName, setNewEntityName] = useState('')
   const [newEntityDescription, setNewEntityDescription] = useState('')
@@ -89,6 +92,13 @@ export default function TopicDetailPage() {
         : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     )
   }, [entities, entitySortBy, entityCreatedByMeOnly, user?.id])
+
+  useEffect(() => {
+    setEntityVisibleCount(ENTITY_PAGE_SIZE)
+  }, [entities, entitySortBy, entityCreatedByMeOnly])
+
+  const visibleEntities = filteredSortedEntities.slice(0, entityVisibleCount)
+  const remainingEntityCount = filteredSortedEntities.length - visibleEntities.length
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault()
@@ -374,7 +384,7 @@ export default function TopicDetailPage() {
             <p className="text-stone-500 text-sm">No entities match this filter.</p>
           ) : (
             <ul className="space-y-3">
-              {filteredSortedEntities.map((e) => (
+              {visibleEntities.map((e) => (
                 <li key={e.id}>
                   <Link to={`/entities/${e.id}`} className="card-link flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
@@ -397,6 +407,14 @@ export default function TopicDetailPage() {
                 </li>
               ))}
             </ul>
+          )}
+
+          {remainingEntityCount > 0 && (
+            <div className="flex justify-center mt-4">
+              <button onClick={() => setEntityVisibleCount((v) => v + ENTITY_PAGE_SIZE)} className="btn-link">
+                Load {Math.min(remainingEntityCount, ENTITY_PAGE_SIZE)} more
+              </button>
+            </div>
           )}
         </div>
       )}
