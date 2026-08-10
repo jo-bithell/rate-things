@@ -48,7 +48,7 @@ public class EntityRepository : IEntityRepository
             sql += " AND ARRAY_CONTAINS(c.tags, @tag, true)";
         }
 
-        sql += " ORDER BY c.name";
+        sql += " ORDER BY c.updatedAt DESC";
         return sql;
     }
 

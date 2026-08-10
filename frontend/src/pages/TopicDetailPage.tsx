@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
@@ -10,6 +10,7 @@ import ImagePicker from '../components/ImagePicker'
 import FriendPicker from '../components/FriendPicker'
 
 type Tab = 'entities' | 'lists'
+type EntitySortBy = 'updatedAt' | 'name'
 
 export default function TopicDetailPage() {
   const { topicId } = useParams<{ topicId: string }>()
@@ -29,6 +30,8 @@ export default function TopicDetailPage() {
   const [tags, setTags] = useState<string[]>([])
   const [search, setSearch] = useState('')
   const [activeTag, setActiveTag] = useState<string | null>(null)
+  const [entitySortBy, setEntitySortBy] = useState<EntitySortBy>('updatedAt')
+  const [entityCreatedByMeOnly, setEntityCreatedByMeOnly] = useState(false)
   const [showCreateEntity, setShowCreateEntity] = useState(false)
   const [newEntityName, setNewEntityName] = useState('')
   const [newEntityDescription, setNewEntityDescription] = useState('')
@@ -77,6 +80,15 @@ export default function TopicDetailPage() {
       setEditInvitedUserIds(topic.sharedWith.map((u) => u.id))
     }
   }, [topic])
+
+  const filteredSortedEntities = useMemo(() => {
+    const filtered = entityCreatedByMeOnly ? entities.filter((e) => e.createdBy === user?.id) : entities
+    return [...filtered].sort((a, b) =>
+      entitySortBy === 'name'
+        ? a.name.localeCompare(b.name)
+        : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    )
+  }, [entities, entitySortBy, entityCreatedByMeOnly, user?.id])
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault()
@@ -333,11 +345,36 @@ export default function TopicDetailPage() {
             </div>
           )}
 
+          <div className="flex flex-wrap items-center gap-4 mb-4">
+            <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
+              Sort by
+              <select
+                value={entitySortBy}
+                onChange={(e) => setEntitySortBy(e.target.value as EntitySortBy)}
+                className="input-field w-auto py-1.5"
+              >
+                <option value="updatedAt">Last updated</option>
+                <option value="name">Name A-Z</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
+              <input
+                type="checkbox"
+                checked={entityCreatedByMeOnly}
+                onChange={(e) => setEntityCreatedByMeOnly(e.target.checked)}
+                className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500"
+              />
+              Created by me
+            </label>
+          </div>
+
           {entities.length === 0 ? (
             <p className="text-stone-500 text-sm">No entities yet. Add the first one.</p>
+          ) : filteredSortedEntities.length === 0 ? (
+            <p className="text-stone-500 text-sm">No entities match this filter.</p>
           ) : (
             <ul className="space-y-3">
-              {entities.map((e) => (
+              {filteredSortedEntities.map((e) => (
                 <li key={e.id}>
                   <Link to={`/entities/${e.id}`} className="card-link flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
