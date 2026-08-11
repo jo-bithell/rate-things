@@ -11,7 +11,7 @@ import FriendPicker from '../components/FriendPicker'
 import EntityPicker from '../components/EntityPicker'
 
 type Tab = 'entities' | 'lists'
-type EntitySortBy = 'updatedAt' | 'name'
+type EntitySortBy = 'updatedAt' | 'name' | 'score'
 
 const ENTITY_PAGE_SIZE = 20
 
@@ -88,11 +88,13 @@ export default function TopicDetailPage() {
 
   const filteredSortedEntities = useMemo(() => {
     const filtered = entityCreatedByMeOnly ? entities.filter((e) => e.createdBy === user?.id) : entities
-    return [...filtered].sort((a, b) =>
-      entitySortBy === 'name'
-        ? a.name.localeCompare(b.name)
-        : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    )
+    // Unrated entities sort last under "Score" rather than tying with a genuine 0/10.
+    const scoreOf = (e: Entity) => (e.ratingCount > 0 ? e.avgRating : -1)
+    return [...filtered].sort((a, b) => {
+      if (entitySortBy === 'name') return a.name.localeCompare(b.name)
+      if (entitySortBy === 'score') return scoreOf(b) - scoreOf(a)
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    })
   }, [entities, entitySortBy, entityCreatedByMeOnly, user?.id])
 
   useEffect(() => {
@@ -371,6 +373,7 @@ export default function TopicDetailPage() {
               >
                 <option value="updatedAt">Last updated</option>
                 <option value="name">Name A-Z</option>
+                <option value="score">Score</option>
               </select>
             </label>
             <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
