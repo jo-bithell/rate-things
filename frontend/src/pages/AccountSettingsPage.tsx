@@ -6,8 +6,11 @@ import ErrorBanner from '../components/ErrorBanner'
 import ImageUploader from '../components/ImageUploader'
 
 export default function AccountSettingsPage() {
-  const { user, updateProfile, changePassword, deleteAccount, uploadProfileImage, removeProfileImage } = useAuth()
+  const { user, updateProfile, changePassword, deleteAccount, uploadProfileImage, removeProfileImage, bootstrapAdmin } = useAuth()
   const navigate = useNavigate()
+
+  const [adminError, setAdminError] = useState<string | null>(null)
+  const [claimingAdmin, setClaimingAdmin] = useState(false)
 
   const [email, setEmail] = useState(user?.email ?? '')
   const [displayName, setDisplayName] = useState(user?.displayName ?? '')
@@ -62,6 +65,19 @@ export default function AccountSettingsPage() {
       setPasswordError(err instanceof ApiError ? err.message : 'Failed to change password.')
     } finally {
       setSavingPassword(false)
+    }
+  }
+
+  const handleClaimAdmin = async () => {
+    if (claimingAdmin) return
+    setAdminError(null)
+    setClaimingAdmin(true)
+    try {
+      await bootstrapAdmin()
+    } catch (err) {
+      setAdminError(err instanceof ApiError ? err.message : 'Failed to claim admin access.')
+    } finally {
+      setClaimingAdmin(false)
     }
   }
 
@@ -168,6 +184,19 @@ export default function AccountSettingsPage() {
           </button>
         </form>
       </div>
+
+      {user?.role !== 'Admin' && (
+        <div className="card">
+          <h3 className="font-display font-bold mb-3">Admin access</h3>
+          <ErrorBanner message={adminError} />
+          <p className="text-sm text-stone-500 mb-3">
+            If no admin exists yet on this app, you can claim admin access here. This only works once - it does nothing once an admin already exists.
+          </p>
+          <button onClick={handleClaimAdmin} disabled={claimingAdmin} className="btn-primary">
+            {claimingAdmin ? 'Claiming…' : 'Claim admin access'}
+          </button>
+        </div>
+      )}
 
       <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-4">
         <h3 className="font-display font-bold mb-1 text-rose-700">Danger zone</h3>

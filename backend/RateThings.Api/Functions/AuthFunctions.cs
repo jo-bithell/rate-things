@@ -52,14 +52,16 @@ public class AuthFunctions
             Email = body.Email,
             DisplayName = body.DisplayName.Trim(),
             PasswordHash = _passwordHasher.Hash(body.Password),
+            IsApproved = false,
         };
 
         user = await _users.CreateAsync(user);
-        var token = _jwtService.GenerateToken(user);
 
-        _logger.LogInformation("New user registered: {UserId}", user.Id);
+        _logger.LogInformation("New user registered, awaiting approval: {UserId}", user.Id);
 
-        return new ObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl)))
+        // No token - every new registration is pending until an admin approves it, so
+        // there's nothing to log them in with yet.
+        return new ObjectResult(new { message = "Account created. An admin needs to approve it before you can log in." })
         {
             StatusCode = StatusCodes.Status201Created,
         };
@@ -81,7 +83,12 @@ public class AuthFunctions
             return HttpResponseExtensions.UnauthorizedProblem("Invalid email or password.");
         }
 
+        if (!user.IsApproved)
+        {
+            return HttpResponseExtensions.ForbiddenProblem("Your account is awaiting admin approval.");
+        }
+
         var token = _jwtService.GenerateToken(user);
-        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl)));
+        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString())));
     }
 }

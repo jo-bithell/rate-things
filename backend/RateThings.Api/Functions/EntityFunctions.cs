@@ -136,7 +136,7 @@ public class EntityFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (entity.CreatedBy != userId)
+        if (entity.CreatedBy != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the creator can edit this entity.");
         }
@@ -177,7 +177,7 @@ public class EntityFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (entity.CreatedBy != userId)
+        if (entity.CreatedBy != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the creator can delete this entity.");
         }
@@ -204,7 +204,7 @@ public class EntityFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (entity.CreatedBy != userId)
+        if (entity.CreatedBy != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the creator can change this entity's image.");
         }
@@ -242,7 +242,7 @@ public class EntityFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (entity.CreatedBy != userId)
+        if (entity.CreatedBy != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the creator can change this entity's image.");
         }

@@ -10,6 +10,7 @@ import ListDetailPage from './pages/ListDetailPage'
 import AccountLayout from './pages/AccountLayout'
 import AccountSettingsPage from './pages/AccountSettingsPage'
 import AccountFriendsPage from './pages/AccountFriendsPage'
+import AdminPage from './pages/AdminPage'
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="settings" element={<AccountSettingsPage />} />
             <Route path="friends" element={<AccountFriendsPage />} />
           </Route>
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/topics" replace />} />

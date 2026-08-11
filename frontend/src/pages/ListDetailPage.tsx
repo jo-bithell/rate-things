@@ -29,20 +29,20 @@ function SortableEntry({
   entry,
   index,
   entity,
-  isOwner,
+  canManage,
   reordering,
   onRemove,
 }: {
   entry: ListEntry
   index: number
   entity: Entity | undefined
-  isOwner: boolean
+  canManage: boolean
   reordering: boolean
   onRemove: () => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: entry.entityId,
-    disabled: !isOwner || reordering,
+    disabled: !canManage || reordering,
   })
 
   const style = {
@@ -54,7 +54,7 @@ function SortableEntry({
   return (
     <li ref={setNodeRef} style={style} className="card py-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        {isOwner && (
+        {canManage && (
           <button
             type="button"
             {...attributes}
@@ -74,7 +74,7 @@ function SortableEntry({
           {entity && <span className="text-xs text-stone-400 ml-2">{entity.ratingCount > 0 ? `${entity.avgRating.toFixed(1)}/10` : 'unrated'}</span>}
         </div>
       </div>
-      {isOwner && (
+      {canManage && (
         <button onClick={onRemove} disabled={reordering} className="text-rose-500 ml-1 hover:text-rose-700 disabled:opacity-30">✕</button>
       )}
     </li>
@@ -133,7 +133,7 @@ export default function ListDetailPage() {
     [list],
   )
 
-  const isOwner = user?.id === list?.ownerId
+  const canManage = user?.id === list?.ownerId || user?.role === 'Admin'
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -224,7 +224,7 @@ export default function ListDetailPage() {
           {list.description && <p className="text-stone-500 text-sm mt-1">{list.description}</p>}
           <div className="text-xs text-stone-400 mt-1">by {list.ownerName}</div>
         </div>
-        {isOwner && (
+        {canManage && (
           <div className="text-sm shrink-0 flex gap-3">
             <button onClick={() => setEditing((v) => !v)} className="btn-link">{editing ? 'Cancel' : 'Edit'}</button>
             <button onClick={handleDelete} disabled={deleting} className="btn-danger-link disabled:opacity-50">
@@ -256,7 +256,7 @@ export default function ListDetailPage() {
                     entry={entry}
                     index={index}
                     entity={entitiesById[entry.entityId]}
-                    isOwner={isOwner}
+                    canManage={canManage}
                     reordering={reordering}
                     onRemove={() => removeEntry(entry.entityId)}
                   />
@@ -267,7 +267,7 @@ export default function ListDetailPage() {
         )}
       </div>
 
-      {isOwner && (
+      {canManage && (
         <div className="mt-6">
           <h2 className="font-display font-bold mb-3">Add from this topic</h2>
           <input

@@ -1,4 +1,4 @@
-import type { Entity, FriendsResponse, ListSummary, Topic, User, UserSearchResult } from '../types'
+import type { Entity, FriendsResponse, ListSummary, PendingUser, Topic, User, UserSearchResult } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
 const TOKEN_KEY = 'ratethings_token'
@@ -57,7 +57,7 @@ async function requestForm<T>(path: string, formData: FormData, method: string):
 
 export const api = {
   register: (email: string, password: string, displayName: string) =>
-    request<{ token: string; user: User }>('/auth/register', {
+    request<{ message: string }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify({ email, password, displayName }),
     }),
@@ -188,4 +188,12 @@ export const api = {
     }),
 
   deleteList: (id: string) => request<void>(`/lists/${id}`, { method: 'DELETE' }),
+
+  bootstrapAdmin: () => request<{ token: string; user: User }>('/manage/bootstrap', { method: 'POST' }),
+
+  getPendingUsers: () => request<PendingUser[]>('/manage/pending-users'),
+
+  approveUser: (id: string) => request<{ message: string }>(`/manage/users/${id}/approve`, { method: 'POST' }),
+
+  rejectUser: (id: string) => request<{ message: string }>(`/manage/users/${id}/reject`, { method: 'POST' }),
 }

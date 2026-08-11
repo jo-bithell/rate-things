@@ -1,30 +1,45 @@
 import { FormEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError } from '../api/client'
 import ErrorBanner from '../components/ErrorBanner'
 
 export default function RegisterPage() {
   const { register } = useAuth()
-  const navigate = useNavigate()
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
     setSubmitting(true)
     try {
-      await register(email, password, displayName)
-      navigate('/topics')
+      setSuccessMessage(await register(email, password, displayName))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Try again.')
     } finally {
       setSubmitting(false)
     }
+  }
+
+  if (successMessage) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-amber-50 px-4">
+        <div className="w-full max-w-sm text-center">
+          <h1 className="text-3xl font-display font-bold text-fuchsia-600 mb-6">⭐ RateThings</h1>
+          <div className="card">
+            <p className="text-stone-700">{successMessage}</p>
+          </div>
+          <p className="text-center text-sm text-stone-500 mt-4">
+            <Link to="/login" className="text-fuchsia-600 font-semibold">Log in</Link>
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (

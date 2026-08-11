@@ -31,6 +31,7 @@ export default function NavBar() {
               )}
               Account
             </NavLink>
+            {user.role === 'Admin' && <NavLink to="/admin" className={linkClass}>Admin</NavLink>}
             <button onClick={logout} className="h-9 px-3 inline-flex items-center rounded-full text-sm font-semibold text-stone-600 hover:bg-amber-100 border-2 border-transparent hover:border-stone-900 transition-colors">
               Log out
             </button>
@@ -42,6 +43,7 @@ export default function NavBar() {
       <nav className="sm:hidden fixed bottom-0 inset-x-0 z-10 bg-amber-50 border-t-2 border-stone-900 flex">
         <NavLink to="/topics" className={mobileLinkClass}>Topics</NavLink>
         <NavLink to="/account" className={mobileLinkClass}>Account</NavLink>
+        {user.role === 'Admin' && <NavLink to="/admin" className={mobileLinkClass}>Admin</NavLink>}
         <button onClick={logout} className="flex-1 text-center py-2 text-xs font-bold text-stone-500">
           Log out
         </button>

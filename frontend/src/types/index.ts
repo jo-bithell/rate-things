@@ -3,6 +3,14 @@ export interface User {
   email: string
   displayName: string
   imageUrl?: string
+  role: 'User' | 'Admin'
+}
+
+export interface PendingUser {
+  id: string
+  email: string
+  displayName: string
+  createdAt: string
 }
 
 export interface SharedUser {

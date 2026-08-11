@@ -139,7 +139,7 @@ export default function EntityDetailPage() {
   if (loading) return <LoadingSpinner />
   if (!entity) return <div className="p-6 text-center text-stone-500">Entity not found.</div>
 
-  const isOwner = user?.id === entity.createdBy
+  const canManage = user?.id === entity.createdBy || user?.role === 'Admin'
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-20 sm:pb-6">
@@ -166,7 +166,7 @@ export default function EntityDetailPage() {
         </div>
       </div>
 
-      {isOwner && (
+      {canManage && (
         <div className="mt-3 flex gap-4">
           <button onClick={() => setEditing((v) => !v)} className="btn-link">
             {editing ? 'Cancel edit' : 'Edit'}
@@ -179,7 +179,7 @@ export default function EntityDetailPage() {
 
       {editing && (
         <form onSubmit={handleEdit} className="card mt-3 space-y-3">
-          {isOwner && (
+          {canManage && (
             <ImageUploader
               imageUrl={entity.imageUrl}
               alt={entity.name}

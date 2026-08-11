@@ -112,7 +112,7 @@ public class TopicFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (topic.CreatedBy != userId)
+        if (topic.CreatedBy != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the creator can edit this topic.");
         }
@@ -149,7 +149,7 @@ public class TopicFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (topic.CreatedBy != userId)
+        if (topic.CreatedBy != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the creator can delete this topic.");
         }
@@ -175,7 +175,7 @@ public class TopicFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (topic.CreatedBy != userId)
+        if (topic.CreatedBy != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the creator can change this topic's image.");
         }
@@ -213,7 +213,7 @@ public class TopicFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (topic.CreatedBy != userId)
+        if (topic.CreatedBy != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the creator can change this topic's image.");
         }

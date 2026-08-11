@@ -42,6 +42,37 @@ public class UserRepository : IUserRepository
         return results;
     }
 
+    public async Task<List<UserDocument>> GetPendingApprovalAsync()
+    {
+        var query = new QueryDefinition("SELECT * FROM c WHERE c.isApproved = false ORDER BY c.createdAt");
+
+        var results = new List<UserDocument>();
+        using var iterator = _container.GetItemQueryIterator<UserDocument>(query);
+        while (iterator.HasMoreResults)
+        {
+            results.AddRange(await iterator.ReadNextAsync());
+        }
+
+        return results;
+    }
+
+    public async Task<bool> AnyAdminExistsAsync()
+    {
+        // Bind role as a parameter rather than a literal so it goes through the same
+        // serializer used to write documents - avoids assuming enums are stored as strings.
+        var query = new QueryDefinition("SELECT VALUE COUNT(1) FROM c WHERE c.role = @role")
+            .WithParameter("@role", UserRole.Admin);
+
+        using var iterator = _container.GetItemQueryIterator<int>(query);
+        if (iterator.HasMoreResults)
+        {
+            var page = await iterator.ReadNextAsync();
+            return page.FirstOrDefault() > 0;
+        }
+
+        return false;
+    }
+
     public async Task<UserDocument?> GetByIdAsync(string id)
     {
         try

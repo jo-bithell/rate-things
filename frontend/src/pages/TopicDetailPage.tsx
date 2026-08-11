@@ -206,7 +206,7 @@ export default function TopicDetailPage() {
   if (loading) return <LoadingSpinner />
   if (!topic) return <div className="p-6 text-center text-stone-500">Topic not found.</div>
 
-  const isOwner = user?.id === topic.createdBy
+  const canManage = user?.id === topic.createdBy || user?.role === 'Admin'
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 pb-20 sm:pb-6">
@@ -237,7 +237,7 @@ export default function TopicDetailPage() {
             </p>
           )}
         </div>
-        {isOwner && (
+        {canManage && (
           <div className="text-sm shrink-0 flex gap-3">
             <button onClick={() => setEditingTopic((v) => !v)} className="btn-link">{editingTopic ? 'Cancel' : 'Edit'}</button>
             <button onClick={handleDeleteTopic} className="btn-danger-link">Delete</button>
@@ -247,7 +247,7 @@ export default function TopicDetailPage() {
 
       {editingTopic && (
         <form onSubmit={handleEditTopic} className="card mt-3 space-y-3">
-          {isOwner && (
+          {canManage && (
             <ImageUploader
               imageUrl={topic.imageUrl}
               alt={topic.name}

@@ -103,7 +103,7 @@ public class ListFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (list.OwnerId != userId)
+        if (list.OwnerId != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the owner can edit this list.");
         }
@@ -137,7 +137,7 @@ public class ListFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (list.OwnerId != userId)
+        if (list.OwnerId != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the owner can edit this list.");
         }
@@ -183,7 +183,7 @@ public class ListFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        if (list.OwnerId != userId)
+        if (list.OwnerId != userId && !req.HttpContext.User.IsAdmin())
         {
             return HttpResponseExtensions.ForbiddenProblem("Only the owner can delete this list.");
         }

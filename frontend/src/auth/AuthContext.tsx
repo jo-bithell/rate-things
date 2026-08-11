@@ -6,12 +6,13 @@ interface AuthContextValue {
   user: User | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string, displayName: string) => Promise<void>
+  register: (email: string, password: string, displayName: string) => Promise<string>
   updateProfile: (email: string, displayName: string) => Promise<void>
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   deleteAccount: (password: string) => Promise<void>
   uploadProfileImage: (file: File) => Promise<void>
   removeProfileImage: () => Promise<void>
+  bootstrapAdmin: () => Promise<void>
   logout: () => void
 }
 
@@ -44,8 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const register = async (email: string, password: string, displayName: string) => {
-    const { token, user } = await api.register(email, password, displayName)
-    persist(token, user)
+    // No auto-login - every new registration is pending until an admin approves it.
+    const { message } = await api.register(email, password, displayName)
+    return message
   }
 
   const updateProfile = async (email: string, displayName: string) => {
@@ -75,6 +77,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateStoredUser(await api.deleteProfileImage())
   }
 
+  const bootstrapAdmin = async () => {
+    const { token, user } = await api.bootstrapAdmin()
+    persist(token, user)
+  }
+
   const logout = () => {
     setToken(null)
     localStorage.removeItem(USER_KEY)
@@ -93,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         deleteAccount,
         uploadProfileImage,
         removeProfileImage,
+        bootstrapAdmin,
         logout,
       }}
     >

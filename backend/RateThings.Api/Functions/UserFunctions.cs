@@ -42,7 +42,7 @@ public class UserFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl));
+        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString()));
     }
 
     [Function("SearchUsers")]
@@ -114,7 +114,7 @@ public class UserFunctions
         // fresh token - otherwise their existing token keeps presenting stale values
         // to every other endpoint until it expires.
         var token = _jwtService.GenerateToken(user);
-        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl)));
+        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString())));
     }
 
     [Function("ChangePassword")]
@@ -217,7 +217,7 @@ public class UserFunctions
         user.ImageUrl = url;
         user = await _users.UpdateAsync(user);
 
-        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl));
+        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString()));
     }
 
     [Function("DeleteProfileImage")]
@@ -240,6 +240,6 @@ public class UserFunctions
         user.ImageUrl = null;
         user = await _users.UpdateAsync(user);
 
-        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl));
+        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString()));
     }
 }
