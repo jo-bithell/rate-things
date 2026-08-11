@@ -56,24 +56,24 @@ async function requestForm<T>(path: string, formData: FormData, method: string):
 }
 
 export const api = {
-  register: (email: string, password: string, displayName: string) =>
+  register: (password: string, displayName: string) =>
     request<{ message: string }>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password, displayName }),
+      body: JSON.stringify({ password, displayName }),
     }),
 
-  login: (email: string, password: string) =>
+  login: (displayName: string, password: string) =>
     request<{ token: string; user: User }>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ displayName, password }),
     }),
 
   getMe: () => request<User>('/users/me'),
 
-  updateProfile: (email: string, displayName: string) =>
+  updateProfile: (displayName: string) =>
     request<{ token: string; user: User }>('/users/me', {
       method: 'PUT',
-      body: JSON.stringify({ email, displayName }),
+      body: JSON.stringify({ displayName }),
     }),
 
   changePassword: (currentPassword: string, newPassword: string) =>

@@ -42,7 +42,7 @@ public class UserFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString()));
+        return new OkObjectResult(new UserDto(user.Id, user.DisplayName, user.ImageUrl, user.Role.ToString()));
     }
 
     [Function("SearchUsers")]
@@ -89,9 +89,9 @@ public class UserFunctions
         }
 
         var body = await req.ReadFromJsonAsync<UpdateProfileRequest>();
-        if (body is null || string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.DisplayName))
+        if (body is null || string.IsNullOrWhiteSpace(body.DisplayName))
         {
-            return HttpResponseExtensions.BadRequestProblem("Email and display name are required.");
+            return HttpResponseExtensions.BadRequestProblem("Display name is required.");
         }
 
         var user = await _users.GetByIdAsync(userId);
@@ -100,21 +100,20 @@ public class UserFunctions
             return HttpResponseExtensions.NotFoundProblem();
         }
 
-        var existing = await _users.GetByEmailAsync(body.Email);
+        var existing = await _users.GetByDisplayNameAsync(body.DisplayName);
         if (existing is not null && existing.Id != userId)
         {
-            return HttpResponseExtensions.ConflictProblem("An account with that email already exists.");
+            return HttpResponseExtensions.ConflictProblem("That display name is already taken.");
         }
 
-        user.Email = body.Email.Trim();
         user.DisplayName = body.DisplayName.Trim();
         user = await _users.UpdateAsync(user);
 
-        // Email/display name are embedded in the JWT's claims, so the caller needs a
-        // fresh token - otherwise their existing token keeps presenting stale values
-        // to every other endpoint until it expires.
+        // Display name is embedded in the JWT's claims, so the caller needs a fresh
+        // token - otherwise their existing token keeps presenting a stale value to
+        // every other endpoint until it expires.
         var token = _jwtService.GenerateToken(user);
-        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString())));
+        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.DisplayName, user.ImageUrl, user.Role.ToString())));
     }
 
     [Function("ChangePassword")]
@@ -217,7 +216,7 @@ public class UserFunctions
         user.ImageUrl = url;
         user = await _users.UpdateAsync(user);
 
-        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString()));
+        return new OkObjectResult(new UserDto(user.Id, user.DisplayName, user.ImageUrl, user.Role.ToString()));
     }
 
     [Function("DeleteProfileImage")]
@@ -240,6 +239,6 @@ public class UserFunctions
         user.ImageUrl = null;
         user = await _users.UpdateAsync(user);
 
-        return new OkObjectResult(new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString()));
+        return new OkObjectResult(new UserDto(user.Id, user.DisplayName, user.ImageUrl, user.Role.ToString()));
     }
 }

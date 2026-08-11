@@ -50,7 +50,7 @@ public class AdminFunctions
         // Their existing token still carries the old role claim - issue a fresh one so
         // the promotion takes effect immediately instead of waiting for re-login.
         var token = _jwtService.GenerateToken(user);
-        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString())));
+        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.DisplayName, user.ImageUrl, user.Role.ToString())));
     }
 
     [Function("GetPendingUsers")]
@@ -63,7 +63,7 @@ public class AdminFunctions
         }
 
         var pending = await _users.GetPendingApprovalAsync();
-        return new OkObjectResult(pending.Select(u => new PendingUserDto(u.Id, u.Email, u.DisplayName, u.CreatedAt)));
+        return new OkObjectResult(pending.Select(u => new PendingUserDto(u.Id, u.DisplayName, u.CreatedAt)));
     }
 
     [Function("ApproveUser")]

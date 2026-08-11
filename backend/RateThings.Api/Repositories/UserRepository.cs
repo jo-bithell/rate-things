@@ -9,11 +9,10 @@ public class UserRepository : IUserRepository
 
     public UserRepository(CosmosContainers containers) => _container = containers.Users;
 
-    public async Task<UserDocument?> GetByEmailAsync(string email)
+    public async Task<UserDocument?> GetByDisplayNameAsync(string displayName)
     {
-        var normalized = email.Trim().ToLowerInvariant();
-        var query = new QueryDefinition("SELECT * FROM c WHERE c.email = @email")
-            .WithParameter("@email", normalized);
+        var query = new QueryDefinition("SELECT * FROM c WHERE LOWER(c.displayName) = @displayName")
+            .WithParameter("@displayName", displayName.Trim().ToLowerInvariant());
 
         using var iterator = _container.GetItemQueryIterator<UserDocument>(query);
         if (iterator.HasMoreResults)
@@ -88,14 +87,12 @@ public class UserRepository : IUserRepository
 
     public async Task<UserDocument> CreateAsync(UserDocument user)
     {
-        user.Email = user.Email.Trim().ToLowerInvariant();
         var response = await _container.CreateItemAsync(user, new PartitionKey(user.Id));
         return response.Resource;
     }
 
     public async Task<UserDocument> UpdateAsync(UserDocument user)
     {
-        user.Email = user.Email.Trim().ToLowerInvariant();
         var response = await _container.ReplaceItemAsync(user, user.Id, new PartitionKey(user.Id));
         return response.Resource;
     }

@@ -31,9 +31,9 @@ public class AuthFunctions
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "auth/register")] HttpRequest req)
     {
         var body = await req.ReadFromJsonAsync<RegisterRequest>();
-        if (body is null || string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Password) || string.IsNullOrWhiteSpace(body.DisplayName))
+        if (body is null || string.IsNullOrWhiteSpace(body.Password) || string.IsNullOrWhiteSpace(body.DisplayName))
         {
-            return HttpResponseExtensions.BadRequestProblem("Email, password, and display name are required.");
+            return HttpResponseExtensions.BadRequestProblem("Password and display name are required.");
         }
 
         if (body.Password.Length < 8)
@@ -41,15 +41,14 @@ public class AuthFunctions
             return HttpResponseExtensions.BadRequestProblem("Password must be at least 8 characters.");
         }
 
-        var existing = await _users.GetByEmailAsync(body.Email);
+        var existing = await _users.GetByDisplayNameAsync(body.DisplayName);
         if (existing is not null)
         {
-            return HttpResponseExtensions.ConflictProblem("An account with that email already exists.");
+            return HttpResponseExtensions.ConflictProblem("That display name is already taken.");
         }
 
         var user = new UserDocument
         {
-            Email = body.Email,
             DisplayName = body.DisplayName.Trim(),
             PasswordHash = _passwordHasher.Hash(body.Password),
             IsApproved = false,
@@ -72,15 +71,15 @@ public class AuthFunctions
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "auth/login")] HttpRequest req)
     {
         var body = await req.ReadFromJsonAsync<LoginRequest>();
-        if (body is null || string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Password))
+        if (body is null || string.IsNullOrWhiteSpace(body.DisplayName) || string.IsNullOrWhiteSpace(body.Password))
         {
-            return HttpResponseExtensions.BadRequestProblem("Email and password are required.");
+            return HttpResponseExtensions.BadRequestProblem("Display name and password are required.");
         }
 
-        var user = await _users.GetByEmailAsync(body.Email);
+        var user = await _users.GetByDisplayNameAsync(body.DisplayName);
         if (user is null || !_passwordHasher.Verify(body.Password, user.PasswordHash))
         {
-            return HttpResponseExtensions.UnauthorizedProblem("Invalid email or password.");
+            return HttpResponseExtensions.UnauthorizedProblem("Invalid display name or password.");
         }
 
         if (!user.IsApproved)
@@ -89,6 +88,6 @@ public class AuthFunctions
         }
 
         var token = _jwtService.GenerateToken(user);
-        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.Email, user.DisplayName, user.ImageUrl, user.Role.ToString())));
+        return new OkObjectResult(new AuthResponse(token, new UserDto(user.Id, user.DisplayName, user.ImageUrl, user.Role.ToString())));
     }
 }

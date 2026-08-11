@@ -12,7 +12,6 @@ export default function AccountSettingsPage() {
   const [adminError, setAdminError] = useState<string | null>(null)
   const [claimingAdmin, setClaimingAdmin] = useState(false)
 
-  const [email, setEmail] = useState(user?.email ?? '')
   const [displayName, setDisplayName] = useState(user?.displayName ?? '')
   const [profileError, setProfileError] = useState<string | null>(null)
   const [profileMessage, setProfileMessage] = useState<string | null>(null)
@@ -31,12 +30,12 @@ export default function AccountSettingsPage() {
 
   const handleSaveProfile = async (e: FormEvent) => {
     e.preventDefault()
-    if (!email.trim() || !displayName.trim() || savingProfile) return
+    if (!displayName.trim() || savingProfile) return
     setProfileError(null)
     setProfileMessage(null)
     setSavingProfile(true)
     try {
-      await updateProfile(email.trim(), displayName.trim())
+      await updateProfile(displayName.trim())
       setProfileMessage('Profile updated.')
     } catch (err) {
       setProfileError(err instanceof ApiError ? err.message : 'Failed to update profile.')
@@ -112,17 +111,6 @@ export default function AccountSettingsPage() {
           />
         </div>
         <form onSubmit={handleSaveProfile} className="space-y-3">
-          <div>
-            <label htmlFor="account-email" className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
-            <input
-              id="account-email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input-field"
-            />
-          </div>
           <div>
             <label htmlFor="account-display-name" className="block text-sm font-semibold text-stone-700 mb-1">Display name</label>
             <input

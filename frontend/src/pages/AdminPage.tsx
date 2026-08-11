@@ -78,7 +78,7 @@ export default function AdminPage() {
             <li key={u.id} className="flex items-center justify-between gap-3 border-2 border-stone-200 rounded-xl p-2">
               <div className="min-w-0">
                 <div className="font-semibold text-sm truncate">{u.displayName}</div>
-                <div className="text-xs text-stone-400 truncate">{u.email}</div>
+                <div className="text-xs text-stone-400 truncate">Requested {new Date(u.createdAt).toLocaleDateString()}</div>
               </div>
               <div className="flex gap-3 shrink-0">
                 <button onClick={() => handleApprove(u.id)} disabled={busyId === u.id} className="btn-link disabled:opacity-50">

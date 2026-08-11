@@ -7,7 +7,7 @@ import ErrorBanner from '../components/ErrorBanner'
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -17,7 +17,7 @@ export default function LoginPage() {
     setError(null)
     setSubmitting(true)
     try {
-      await login(email, password)
+      await login(displayName, password)
       navigate('/topics')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Try again.')
@@ -33,13 +33,12 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="card space-y-4">
           <ErrorBanner message={error} />
           <div>
-            <label htmlFor="login-email" className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
+            <label htmlFor="login-display-name" className="block text-sm font-semibold text-stone-700 mb-1">Display name</label>
             <input
-              id="login-email"
-              type="email"
+              id="login-display-name"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
               className="input-field"
             />
           </div>

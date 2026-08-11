@@ -5,9 +5,9 @@ import type { User } from '../types'
 interface AuthContextValue {
   user: User | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string, displayName: string) => Promise<string>
-  updateProfile: (email: string, displayName: string) => Promise<void>
+  login: (displayName: string, password: string) => Promise<void>
+  register: (password: string, displayName: string) => Promise<string>
+  updateProfile: (displayName: string) => Promise<void>
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   deleteAccount: (password: string) => Promise<void>
   uploadProfileImage: (file: File) => Promise<void>
@@ -39,19 +39,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(user)
   }
 
-  const login = async (email: string, password: string) => {
-    const { token, user } = await api.login(email, password)
+  const login = async (displayName: string, password: string) => {
+    const { token, user } = await api.login(displayName, password)
     persist(token, user)
   }
 
-  const register = async (email: string, password: string, displayName: string) => {
+  const register = async (password: string, displayName: string) => {
     // No auto-login - every new registration is pending until an admin approves it.
-    const { message } = await api.register(email, password, displayName)
+    const { message } = await api.register(password, displayName)
     return message
   }
 
-  const updateProfile = async (email: string, displayName: string) => {
-    const { token, user } = await api.updateProfile(email, displayName)
+  const updateProfile = async (displayName: string) => {
+    const { token, user } = await api.updateProfile(displayName)
     persist(token, user)
   }
 

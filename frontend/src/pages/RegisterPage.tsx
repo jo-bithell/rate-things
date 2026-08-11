@@ -7,7 +7,6 @@ import ErrorBanner from '../components/ErrorBanner'
 export default function RegisterPage() {
   const { register } = useAuth()
   const [displayName, setDisplayName] = useState('')
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -18,7 +17,7 @@ export default function RegisterPage() {
     setError(null)
     setSubmitting(true)
     try {
-      setSuccessMessage(await register(email, password, displayName))
+      setSuccessMessage(await register(password, displayName))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Try again.')
     } finally {
@@ -57,17 +56,7 @@ export default function RegisterPage() {
               onChange={(e) => setDisplayName(e.target.value)}
               className="input-field"
             />
-          </div>
-          <div>
-            <label htmlFor="register-email" className="block text-sm font-semibold text-stone-700 mb-1">Email</label>
-            <input
-              id="register-email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input-field"
-            />
+            <p className="text-xs text-stone-400 mt-1">This is what you'll log in with — must be unique.</p>
           </div>
           <div>
             <label htmlFor="register-password" className="block text-sm font-semibold text-stone-700 mb-1">Password</label>

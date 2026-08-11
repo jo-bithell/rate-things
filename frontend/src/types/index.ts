@@ -1,6 +1,5 @@
 export interface User {
   id: string
-  email: string
   displayName: string
   imageUrl?: string
   role: 'User' | 'Admin'
@@ -8,7 +7,6 @@ export interface User {
 
 export interface PendingUser {
   id: string
-  email: string
   displayName: string
   createdAt: string
 }
