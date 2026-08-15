@@ -147,6 +147,14 @@ export default function EntityDetailPage() {
 
       <ErrorBanner message={error} />
 
+      {entity.imageUrl && (
+        <img
+          src={entity.imageUrl}
+          alt={entity.name}
+          className="w-full h-40 sm:h-56 object-cover rounded-2xl border-2 border-stone-900 shadow-pop mt-3"
+        />
+      )}
+
       <div className="flex items-start justify-between mt-2 gap-3">
         <div>
           <h1 className="text-2xl font-display font-bold">{entity.name}</h1>
