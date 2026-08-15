@@ -55,12 +55,25 @@ public class UserFunctions
             return HttpResponseExtensions.UnauthorizedProblem();
         }
 
-        // Blank q browses everyone (excluding self) rather than searching by name -
-        // lets the picker be paged through without already knowing who to look for.
+        // Blank q browses a recommended set rather than searching by name - lets the
+        // picker be paged through without already knowing who to look for. A non-blank
+        // q is an explicit name search, so it isn't narrowed to the social graph -
+        // otherwise a brand-new user with no friends could never find anyone to add.
         var q = req.Query["q"].FirstOrDefault() ?? "";
         var matches = await _users.SearchByDisplayNameAsync(q, excludeUserId: userId);
         var relationships = await _friendships.GetForUserAsync(userId);
         var relationshipByOtherUserId = relationships.ToDictionary(f => f.OtherUserId(userId));
+
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            var directFriendIds = relationshipByOtherUserId.Values
+                .Where(f => f.Status == FriendshipStatus.Accepted)
+                .Select(f => f.OtherUserId(userId))
+                .ToList();
+            var reachableIds = await _friendships.GetFriendIdsForUsersAsync(directFriendIds);
+            reachableIds.Remove(userId);
+            matches = matches.Where(u => reachableIds.Contains(u.Id)).ToList();
+        }
 
         var results = matches.Select(u =>
         {

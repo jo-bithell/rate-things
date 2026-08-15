@@ -76,6 +76,35 @@ public class FriendshipRepository : IFriendshipRepository
         return friendIds;
     }
 
+    // Returns everyone (on either side) of an accepted friendship touching any of the
+    // given users - used to expand a direct friend list into "friends of friends".
+    public async Task<HashSet<string>> GetFriendIdsForUsersAsync(IEnumerable<string> userIds)
+    {
+        var ids = userIds.Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return new HashSet<string>();
+        }
+
+        var query = new QueryDefinition(
+                "SELECT * FROM c WHERE c.status = @status AND (ARRAY_CONTAINS(@ids, c.requesterId) OR ARRAY_CONTAINS(@ids, c.recipientId))")
+            .WithParameter("@status", FriendshipStatus.Accepted)
+            .WithParameter("@ids", ids);
+
+        var friendIds = new HashSet<string>();
+        using var iterator = _container.GetItemQueryIterator<FriendshipDocument>(query);
+        while (iterator.HasMoreResults)
+        {
+            foreach (var friendship in await iterator.ReadNextAsync())
+            {
+                friendIds.Add(friendship.RequesterId);
+                friendIds.Add(friendship.RecipientId);
+            }
+        }
+
+        return friendIds;
+    }
+
     public async Task<FriendshipDocument> CreateAsync(FriendshipDocument friendship)
     {
         var response = await _container.CreateItemAsync(friendship, new PartitionKey(friendship.Id));

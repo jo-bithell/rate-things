@@ -142,6 +142,8 @@ export default function FriendsManager() {
 
   if (loading) return <LoadingSpinner />
 
+  const browsableResults = results.filter((u) => u.relationshipStatus !== 'friends')
+
   return (
     <div>
       <ErrorBanner message={error} />
@@ -158,10 +160,10 @@ export default function FriendsManager() {
         </button>
       </form>
 
-      {results.length > 0 && (
+      {browsableResults.length > 0 && (
         <div className="mb-4">
           <ul className="space-y-2">
-            {results.slice(0, visibleCount).map((u) => (
+            {browsableResults.slice(0, visibleCount).map((u) => (
               <li key={u.id} className="flex items-center justify-between gap-3 border-2 border-stone-200 rounded-xl p-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <Avatar imageUrl={u.imageUrl} name={u.displayName} />
@@ -178,14 +180,13 @@ export default function FriendsManager() {
                 )}
                 {u.relationshipStatus === 'pending_outgoing' && <span className="text-xs text-stone-400 shrink-0">Requested</span>}
                 {u.relationshipStatus === 'pending_incoming' && <span className="text-xs text-stone-400 shrink-0">See requests below</span>}
-                {u.relationshipStatus === 'friends' && <span className="text-xs text-stone-400 shrink-0">Already friends</span>}
               </li>
             ))}
           </ul>
-          {results.length > visibleCount && (
+          {browsableResults.length > visibleCount && (
             <div className="flex justify-center mt-2">
               <button onClick={() => setVisibleCount((v) => v + PAGE_SIZE)} className="btn-link">
-                Load {Math.min(results.length - visibleCount, PAGE_SIZE)} more
+                Load {Math.min(browsableResults.length - visibleCount, PAGE_SIZE)} more
               </button>
             </div>
           )}

@@ -8,6 +8,7 @@ public interface IFriendshipRepository
     Task<FriendshipDocument?> GetBetweenAsync(string userIdA, string userIdB);
     Task<List<FriendshipDocument>> GetForUserAsync(string userId);
     Task<HashSet<string>> GetFriendIdsAsync(string userId);
+    Task<HashSet<string>> GetFriendIdsForUsersAsync(IEnumerable<string> userIds);
     Task<FriendshipDocument> CreateAsync(FriendshipDocument friendship);
     Task<FriendshipDocument> UpdateAsync(FriendshipDocument friendship);
     Task DeleteAsync(string id);
