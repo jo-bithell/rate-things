@@ -36,6 +36,9 @@ export default function TopicDetailPage() {
   const [entitySortBy, setEntitySortBy] = useState<EntitySortBy>('updatedAt')
   const [entityCreatedByMeOnly, setEntityCreatedByMeOnly] = useState(false)
   const [entityVisibleCount, setEntityVisibleCount] = useState(ENTITY_PAGE_SIZE)
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([])
+  const [deletingSelected, setDeletingSelected] = useState(false)
   const [showCreateEntity, setShowCreateEntity] = useState(false)
   const [newEntityName, setNewEntityName] = useState('')
   const [newEntityDescription, setNewEntityDescription] = useState('')
@@ -99,6 +102,7 @@ export default function TopicDetailPage() {
 
   useEffect(() => {
     setEntityVisibleCount(ENTITY_PAGE_SIZE)
+    setSelectedEntityIds([])
   }, [entities, entitySortBy, entityCreatedByMeOnly])
 
   const visibleEntities = filteredSortedEntities.slice(0, entityVisibleCount)
@@ -113,6 +117,35 @@ export default function TopicDetailPage() {
     const next = activeTags.includes(tag) ? activeTags.filter((t) => t !== tag) : [...activeTags, tag]
     setActiveTags(next)
     loadEntities(search, next)
+  }
+
+  const canManageEntity = (e: Entity) => user?.id === e.createdBy || user?.role === 'Admin'
+
+  const toggleSelectMode = () => {
+    setSelectMode((v) => !v)
+    setSelectedEntityIds([])
+  }
+
+  const toggleEntitySelected = (id: string) => {
+    setSelectedEntityIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedEntityIds.length === 0 || deletingSelected) return
+    const count = selectedEntityIds.length
+    if (!confirm(`Delete ${count} selected entit${count === 1 ? 'y' : 'ies'}? This can't be undone.`)) return
+    setDeletingSelected(true)
+    setError(null)
+    try {
+      await Promise.all(selectedEntityIds.map((id) => api.deleteEntity(id)))
+      setSelectedEntityIds([])
+      setSelectMode(false)
+      await loadEntities(search, activeTags)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to delete selected entities.')
+    } finally {
+      setDeletingSelected(false)
+    }
   }
 
   const handleCreateEntity = async (e: FormEvent) => {
@@ -303,11 +336,31 @@ export default function TopicDetailPage() {
 
       {tab === 'entities' && (
         <div className="mt-4">
-          <div className="flex justify-end mb-3">
-            <button onClick={() => setShowCreateEntity((v) => !v)} className="btn-primary">
-              {showCreateEntity ? 'Cancel' : '+ Add entity'}
+          <div className="flex justify-end gap-3 mb-3">
+            <button onClick={toggleSelectMode} className="btn-link">
+              {selectMode ? 'Cancel' : 'Select'}
             </button>
+            {!selectMode && (
+              <button onClick={() => setShowCreateEntity((v) => !v)} className="btn-primary">
+                {showCreateEntity ? 'Cancel' : '+ Add entity'}
+              </button>
+            )}
           </div>
+
+          {selectMode && (
+            <div className="card flex items-center justify-between mb-3 py-3">
+              <span className="text-sm font-semibold text-stone-700">
+                {selectedEntityIds.length} selected
+              </span>
+              <button
+                onClick={handleDeleteSelected}
+                disabled={selectedEntityIds.length === 0 || deletingSelected}
+                className="btn-danger-link disabled:opacity-50"
+              >
+                {deletingSelected ? 'Deleting…' : 'Delete selected'}
+              </button>
+            </div>
+          )}
 
           {showCreateEntity && (
             <form onSubmit={handleCreateEntity} className="card mb-4 space-y-3">
@@ -393,10 +446,20 @@ export default function TopicDetailPage() {
             <p className="text-stone-500 text-sm">No entities match this filter.</p>
           ) : (
             <ul className="space-y-3">
-              {visibleEntities.map((e) => (
-                <li key={e.id}>
-                  <Link to={`/entities/${e.id}`} className="card-link flex items-center justify-between gap-3">
+              {visibleEntities.map((e) => {
+                const deletable = canManageEntity(e)
+                const inner = (
+                  <>
                     <div className="flex items-center gap-3 min-w-0">
+                      {selectMode && deletable && (
+                        <input
+                          type="checkbox"
+                          checked={selectedEntityIds.includes(e.id)}
+                          onChange={() => toggleEntitySelected(e.id)}
+                          onClick={(ev) => ev.stopPropagation()}
+                          className="w-4 h-4 rounded border-2 border-stone-900 accent-fuchsia-500 shrink-0"
+                        />
+                      )}
                       {e.imageUrl && (
                         <img src={e.imageUrl} alt="" className="w-10 h-10 rounded-xl border-2 border-stone-900 object-cover shrink-0" />
                       )}
@@ -412,9 +475,25 @@ export default function TopicDetailPage() {
                       {e.ratingCount > 0 && <div className="score-badge text-sm">{e.avgRating.toFixed(1)}</div>}
                       <div className="text-[10px] text-stone-400">{e.ratingCount} rating{e.ratingCount === 1 ? '' : 's'}</div>
                     </div>
-                  </Link>
-                </li>
-              ))}
+                  </>
+                )
+                return (
+                  <li key={e.id}>
+                    {selectMode ? (
+                      <div
+                        onClick={() => deletable && toggleEntitySelected(e.id)}
+                        className={`card-link flex items-center justify-between gap-3 ${deletable ? 'cursor-pointer' : 'opacity-50'} ${selectedEntityIds.includes(e.id) ? 'ring-2 ring-fuchsia-500' : ''}`}
+                      >
+                        {inner}
+                      </div>
+                    ) : (
+                      <Link to={`/entities/${e.id}`} className="card-link flex items-center justify-between gap-3">
+                        {inner}
+                      </Link>
+                    )}
+                  </li>
+                )
+              })}
             </ul>
           )}
 
