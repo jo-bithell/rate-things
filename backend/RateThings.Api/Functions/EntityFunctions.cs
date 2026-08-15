@@ -43,8 +43,8 @@ public class EntityFunctions
         }
 
         var search = req.Query["search"].FirstOrDefault();
-        var tag = req.Query["tag"].FirstOrDefault();
-        var entities = await _entities.SearchAsync(topicId, search, tag);
+        var tags = req.Query["tag"].Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => t!).ToArray();
+        var entities = await _entities.SearchAsync(topicId, search, tags.Length > 0 ? tags : null);
         return new OkObjectResult(await Task.WhenAll(entities.Select(e => ToDtoAsync(e, _users))));
     }
 

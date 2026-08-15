@@ -129,10 +129,10 @@ export const api = {
 
   deleteTopicImage: (id: string) => request<Topic>(`/topics/${id}/image`, { method: 'DELETE' }),
 
-  getEntities: (topicId: string, search?: string, tag?: string) => {
+  getEntities: (topicId: string, search?: string, tags?: string[]) => {
     const params = new URLSearchParams()
     if (search) params.set('search', search)
-    if (tag) params.set('tag', tag)
+    tags?.forEach((t) => params.append('tag', t))
     const qs = params.toString()
     return request<Entity[]>(`/topics/${topicId}/entities${qs ? `?${qs}` : ''}`)
   },

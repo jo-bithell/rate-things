@@ -150,7 +150,7 @@ public class ListFunctions
 
         var distinctIds = body.EntityIdsInOrder.Distinct().ToList();
 
-        var topicEntities = await _entities.SearchAsync(list.TopicId, search: null, tag: null);
+        var topicEntities = await _entities.SearchAsync(list.TopicId, search: null, tags: null);
         var validEntityIds = topicEntities.Select(e => e.Id).ToHashSet();
         var unknownIds = distinctIds.Where(id => !validEntityIds.Contains(id)).ToList();
         if (unknownIds.Count > 0)

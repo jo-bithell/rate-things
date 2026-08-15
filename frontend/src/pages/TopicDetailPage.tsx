@@ -32,7 +32,7 @@ export default function TopicDetailPage() {
   const [entities, setEntities] = useState<Entity[]>([])
   const [tags, setTags] = useState<string[]>([])
   const [search, setSearch] = useState('')
-  const [activeTag, setActiveTag] = useState<string | null>(null)
+  const [activeTags, setActiveTags] = useState<string[]>([])
   const [entitySortBy, setEntitySortBy] = useState<EntitySortBy>('updatedAt')
   const [entityCreatedByMeOnly, setEntityCreatedByMeOnly] = useState(false)
   const [entityVisibleCount, setEntityVisibleCount] = useState(ENTITY_PAGE_SIZE)
@@ -52,10 +52,10 @@ export default function TopicDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const loadEntities = async (search?: string, tag?: string | null) => {
+  const loadEntities = async (search?: string, tags?: string[]) => {
     if (!topicId) return
     const [entityResults, tagResults] = await Promise.all([
-      api.getEntities(topicId, search, tag ?? undefined),
+      api.getEntities(topicId, search, tags),
       api.getEntityTags(topicId),
     ])
     setEntities(entityResults)
@@ -106,12 +106,12 @@ export default function TopicDetailPage() {
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault()
-    loadEntities(search, activeTag)
+    loadEntities(search, activeTags)
   }
 
   const toggleTag = (tag: string) => {
-    const next = activeTag === tag ? null : tag
-    setActiveTag(next)
+    const next = activeTags.includes(tag) ? activeTags.filter((t) => t !== tag) : [...activeTags, tag]
+    setActiveTags(next)
     loadEntities(search, next)
   }
 
@@ -139,7 +139,7 @@ export default function TopicDetailPage() {
       setNewEntityTags('')
       setNewEntityImage(null)
       setShowCreateEntity(false)
-      await loadEntities(search, activeTag)
+      await loadEntities(search, activeTags)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to create entity.')
     } finally {
@@ -355,7 +355,7 @@ export default function TopicDetailPage() {
                 <button
                   key={tag}
                   onClick={() => toggleTag(tag)}
-                  className={`pill ${activeTag === tag ? 'bg-fuchsia-500 text-white' : 'bg-white text-stone-600 hover:bg-amber-100'}`}
+                  className={`pill ${activeTags.includes(tag) ? 'bg-fuchsia-500 text-white' : 'bg-white text-stone-600 hover:bg-amber-100'}`}
                 >
                   {tag}
                 </button>

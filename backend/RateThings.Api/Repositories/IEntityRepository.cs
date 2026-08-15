@@ -4,7 +4,7 @@ namespace RateThings.Api.Repositories;
 
 public interface IEntityRepository
 {
-    Task<List<EntityDocument>> SearchAsync(string topicId, string? search, string? tag);
+    Task<List<EntityDocument>> SearchAsync(string topicId, string? search, IReadOnlyList<string>? tags);
     Task<EntityDocument?> GetByIdAsync(string id);
     Task<EntityDocument?> GetByNameInTopicAsync(string topicId, string name);
     Task<List<string>> GetDistinctTagsAsync(string topicId);

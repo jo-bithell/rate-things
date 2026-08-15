@@ -9,9 +9,15 @@ public class EntityRepository : IEntityRepository
 
     public EntityRepository(CosmosContainers containers) => _container = containers.Entities;
 
-    public async Task<List<EntityDocument>> SearchAsync(string topicId, string? search, string? tag)
+    public async Task<List<EntityDocument>> SearchAsync(string topicId, string? search, IReadOnlyList<string>? tags)
     {
-        var qb = new QueryDefinition(BuildSearchSql(search, tag))
+        var normalizedTags = tags?
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .Select(t => t.Trim().ToLowerInvariant())
+            .Distinct()
+            .ToList();
+
+        var qb = new QueryDefinition(BuildSearchSql(search, normalizedTags))
             .WithParameter("@topicId", topicId);
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -19,9 +25,9 @@ public class EntityRepository : IEntityRepository
             qb = qb.WithParameter("@search", search.Trim().ToLowerInvariant());
         }
 
-        if (!string.IsNullOrWhiteSpace(tag))
+        if (normalizedTags is { Count: > 0 })
         {
-            qb = qb.WithParameter("@tag", tag.Trim().ToLowerInvariant());
+            qb = qb.WithParameter("@tags", normalizedTags);
         }
 
         var results = new List<EntityDocument>();
@@ -35,7 +41,7 @@ public class EntityRepository : IEntityRepository
         return results;
     }
 
-    private static string BuildSearchSql(string? search, string? tag)
+    private static string BuildSearchSql(string? search, IReadOnlyList<string>? normalizedTags)
     {
         var sql = "SELECT * FROM c WHERE c.topicId = @topicId";
         if (!string.IsNullOrWhiteSpace(search))
@@ -43,9 +49,10 @@ public class EntityRepository : IEntityRepository
             sql += " AND CONTAINS(LOWER(c.name), @search)";
         }
 
-        if (!string.IsNullOrWhiteSpace(tag))
+        // Matches entities carrying ANY of the selected tags.
+        if (normalizedTags is { Count: > 0 })
         {
-            sql += " AND ARRAY_CONTAINS(c.tags, @tag, true)";
+            sql += " AND EXISTS(SELECT VALUE t FROM t IN c.tags WHERE ARRAY_CONTAINS(@tags, t, true))";
         }
 
         sql += " ORDER BY c.updatedAt DESC";
